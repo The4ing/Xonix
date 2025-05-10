@@ -1,4 +1,4 @@
-class Player {
+﻿class Player {
 public:
     Player(const sf::Vector2f& startPos);
     void handleInput();
@@ -9,6 +9,6 @@ public:
 private:
     sf::Vector2f position;
     std::vector<sf::Vector2i> trail;
-    Direction currentDirection;
+    Direction cלurrentDirection;
     bool isInTrailMode;
 };
