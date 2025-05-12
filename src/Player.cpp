@@ -34,63 +34,27 @@ void Player::update(sf::Time dt) {
     sf::Vector2f velocity = sf::Vector2f(gridDirection) * moveSpeed * dt.asSeconds();
     sf::Vector2f nextPos = actualPos + velocity;
 
-    // Compute wall collision with pixel offset logic
-    const float pixelOffset = 4.0f;
-
+    // Define edges of player at next position
     float left = nextPos.x;
     float right = nextPos.x + tileSize;
     float top = nextPos.y;
     float bottom = nextPos.y + tileSize;
 
-    int tileTop = static_cast<int>(top / tileSize);
-    int tileBottom = static_cast<int>((bottom - 1) / tileSize);
-    int tileLeft = static_cast<int>(left / tileSize);
-    int tileRight = static_cast<int>((right - 1) / tileSize);
+    // Get window boundaries
+    float maxX = windowSize.x;
+    float maxY = HUD_TOP_Y ;
 
-    bool blocked = false;
 
-    if (gridDirection.y == -1) { // Up
-        float bottomEdge = nextPos.y + tileSize;
-        int wallRow = static_cast<int>(bottomEdge / tileSize);
-        if ((gridRef->get(wallRow, tileLeft) == TileType::Wall ||
-            gridRef->get(wallRow, tileRight) == TileType::Wall) &&
-            bottomEdge > (wallRow + 1) * tileSize + pixelOffset) {
-            blocked = true;
-        }
-    }
-    else if (gridDirection.y == 1) { // Down
-        float topEdge = nextPos.y;
-        int wallRow = static_cast<int>(topEdge / tileSize);
-        if ((gridRef->get(wallRow, tileLeft) == TileType::Wall ||
-            gridRef->get(wallRow, tileRight) == TileType::Wall) &&
-            topEdge < wallRow * tileSize - pixelOffset) {
-            blocked = true;
-        }
-    }
-    else if (gridDirection.x == -1) { // Left
-        float rightEdge = nextPos.x + tileSize;
-        int wallCol = static_cast<int>((rightEdge) / tileSize);
-        if ((gridRef->get(tileTop, wallCol) == TileType::Wall ||
-            gridRef->get(tileBottom, wallCol) == TileType::Wall) &&
-            rightEdge > (wallCol + 1) * tileSize + pixelOffset) {
-            blocked = true;
-        }
-    }
-    else if (gridDirection.x == 1) { // Right
-        float leftEdge = nextPos.x;
-        int wallCol = static_cast<int>(leftEdge / tileSize);
-        if ((gridRef->get(tileTop, wallCol) == TileType::Wall ||
-            gridRef->get(tileBottom, wallCol) == TileType::Wall) &&
-            leftEdge < wallCol * tileSize - pixelOffset) {
-            blocked = true;
-        }
+    // If next position is out of window bounds — stop movement
+    if (left < 0 || right > maxX || top < 0 || bottom > maxY) {
+        return;
     }
 
-    if (!blocked) {
-        actualPos = nextPos;
-        shape.setPosition(actualPos);
-    }
+    // Allow movement on any tile, including Wall and Filled
+    actualPos = nextPos;
+    shape.setPosition(actualPos);
 }
+
 
 void Player::draw(sf::RenderWindow& window) {
     window.draw(shape);
@@ -115,5 +79,5 @@ void Player::collideWith(GameObject& other) {
 
 void Player::collideWithWall(Wall& wall) {
     std::cout << "Player hit a wall (from Player side)" << std::endl;
-    stop(); // or something more sophisticated
+    //stop(); // or something more sophisticated
 }

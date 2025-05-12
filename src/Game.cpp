@@ -7,15 +7,17 @@ Game::Game()
     currentLevelNumber(0),
     lives(3),
     closedAreaPercent(0.0f),
-    player(5, 5, 32.0f),
-    grid(30, 60, 32.0f)
+    player(5, 5, 32.0f), //starting position
+    grid(30, 60, 32.0f),
+    hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font)
 {
+    font.loadFromFile("resources/arial.ttf"); // make sure arial.ttf is in your project folder
+
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
 
     gameObjects.push_back(&player);
 
-    // ?? Create Wall objects from the grid
     for (int row = 0; row < grid.getRows(); ++row) {
         for (int col = 0; col < grid.getCols(); ++col) {
             if (grid.get(row, col) == TileType::Wall) {
@@ -25,11 +27,11 @@ Game::Game()
         }
     }
 
-    // ?? Add wall pointers to gameObjects
     for (Wall& wall : walls) {
         gameObjects.push_back(&wall);
     }
 }
+
 
 void Game::run() {
     sf::Clock clock;
@@ -61,7 +63,11 @@ void Game::update(sf::Time dt) {
     player.handleInput();
     player.update(dt);
 
-    // ?? Collision loop (double dispatch)
+    float elapsed = gameClock.getElapsedTime().asSeconds();
+    hud.setTime(elapsed);
+    hud.setScore(score);
+    hud.setLives(lives);
+
     for (size_t i = 0; i < gameObjects.size(); ++i) {
         for (size_t j = i + 1; j < gameObjects.size(); ++j) {
             if (gameObjects[i]->getBounds().intersects(gameObjects[j]->getBounds())) {
@@ -77,7 +83,6 @@ void Game::render() {
 
     grid.draw(window);
 
-    // draw all walls (from gameObjects)
     for (GameObject* obj : gameObjects) {
         if (auto* wall = dynamic_cast<Wall*>(obj)) {
             wall->draw(window);
@@ -85,6 +90,7 @@ void Game::render() {
     }
 
     player.draw(window);
+    hud.draw(window);
 
     window.display();
 }

@@ -16,9 +16,12 @@ public:
     int getCols() const { return cols; }
     float getTileSize() const { return tileSize; }
 
+
 private:
     int rows, cols;
     float tileSize;
     std::vector<std::vector<TileType>> grid;
     sf::RectangleShape tileShape;
+
+
 };

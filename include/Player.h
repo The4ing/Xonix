@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include <iostream>
 using namespace std;
+constexpr float HUD_TOP_Y = 960.0f;
 
 class Player : public GameObject {
 public:
@@ -24,6 +25,8 @@ public:
     sf::FloatRect getBounds() const override;
 
 private:
+    void applyFloodFill();
+
     sf::Vector2f actualPos;
     sf::RectangleShape shape;
     float tileSize;

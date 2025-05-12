@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "LevelGrid.h"
 #include "Wall.h"
+#include "HUD.h"
 
 class Game {
 public:
@@ -27,4 +28,9 @@ private:
 
     std::vector<Wall> walls;               // holds actual wall objects
     std::vector<GameObject*> gameObjects;  // holds pointers to player + walls
+
+    sf::Font font;
+    HUD hud;
+    sf::Clock gameClock;
+    int score = 0;
 };
