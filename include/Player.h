@@ -1,14 +1,34 @@
-﻿class Player {
+﻿#pragma once
+#include <SFML/Graphics.hpp>
+#include "LevelGrid.h"
+#include "GameObject.h"
+#include <iostream>
+using namespace std;
+
+class Player : public GameObject {
 public:
-    Player(const sf::Vector2f& startPos);
+    Player(int startX, int startY, float tileSize);
+
     void handleInput();
-    void update(sf::Time dt, const Board& board);
-    void reset();
-    const std::vector<sf::Vector2i>& getTrail() const;
+    void update(sf::Time dt);
+    void draw(sf::RenderWindow& window);
+
+    void setWindowSize(sf::Vector2f size);
+    void setGrid(LevelGrid* grid);
+    void stop();
+
+    // Inherited from GameObject
+    void collideWith(GameObject& other) override;
+    void collideWithWall(Wall& wall) override;
+  //  void collideWithEnemy(class Enemy& enemy) override;
+    sf::FloatRect getBounds() const override;
 
 private:
-    sf::Vector2f position;
-    std::vector<sf::Vector2i> trail;
-    Direction cלurrentDirection;
-    bool isInTrailMode;
+    sf::Vector2f actualPos;
+    sf::RectangleShape shape;
+    float tileSize;
+    float moveSpeed;
+    sf::Vector2i gridDirection;
+    sf::Vector2f windowSize;
+    LevelGrid* gridRef = nullptr;
 };
