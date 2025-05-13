@@ -50,13 +50,14 @@ void Player::update(sf::Time dt) {
         return;
     }
 
+
     // Allow movement on any tile, including Wall and Filled
     actualPos = nextPos;
     shape.setPosition(actualPos);
 }
 
 
-void Player::draw(sf::RenderWindow& window) {
+void Player::draw(sf::RenderWindow& window) const {
     window.draw(shape);
 }
 

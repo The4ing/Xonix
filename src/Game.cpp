@@ -7,7 +7,7 @@ Game::Game()
     currentLevelNumber(0),
     lives(3),
     closedAreaPercent(0.0f),
-    player(5, 5, 32.0f), //starting position
+    player(0, 29, 32.0f), //starting position
     grid(30, 60, 32.0f),
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font)
 {
@@ -30,6 +30,10 @@ Game::Game()
     for (Wall& wall : walls) {
         gameObjects.push_back(&wall);
     }
+    enemies.emplace_back(sf::Vector2f(400, 300), 100.f, grid.getTileSize());
+    gameObjects.push_back(&enemies.back());
+
+
 }
 
 
@@ -62,6 +66,9 @@ void Game::processEvents() {
 void Game::update(sf::Time dt) {
     player.handleInput();
     player.update(dt);
+    for (auto& enemy : enemies)
+        enemy.update(dt, grid);
+
 
     float elapsed = gameClock.getElapsedTime().asSeconds();
     hud.setTime(elapsed);
@@ -90,6 +97,9 @@ void Game::render() {
     }
 
     player.draw(window);
+    for (const auto& enemy : enemies)
+        enemy.draw(window);
+
     hud.draw(window);
 
     window.display();

@@ -5,6 +5,7 @@
 #include "LevelGrid.h"
 #include "Wall.h"
 #include "HUD.h"
+#include "Enemy.h"
 
 class Game {
 public:
@@ -27,7 +28,9 @@ private:
     LevelGrid grid;
 
     std::vector<Wall> walls;               // holds actual wall objects
-    std::vector<GameObject*> gameObjects;  // holds pointers to player + walls
+    std::vector<Enemy> enemies;
+    std::vector<GameObject*> gameObjects;
+
 
     sf::Font font;
     HUD hud;

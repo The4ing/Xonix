@@ -12,7 +12,8 @@ public:
 
     void handleInput();
     void update(sf::Time dt);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window) const override;
+
 
     void setWindowSize(sf::Vector2f size);
     void setGrid(LevelGrid* grid);

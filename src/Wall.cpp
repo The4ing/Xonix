@@ -7,7 +7,7 @@ Wall::Wall(const sf::Vector2f& position, float tileSize) {
     shape.setPosition(position);
 }
 
-void Wall::draw(sf::RenderWindow& window) {
+void Wall::draw(sf::RenderWindow& window) const {
     window.draw(shape);
 }
 
