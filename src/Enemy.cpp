@@ -7,9 +7,11 @@
 Enemy::Enemy(const sf::Vector2f& pos, float speed, float tileSize)
     : speed(speed), tileSize(tileSize)
 {
-    shape.setSize(sf::Vector2f(tileSize, tileSize));
-    shape.setFillColor(sf::Color::Red);
+    shape.setRadius(tileSize / 2.f);
+    shape.setOrigin(tileSize / 2.f, tileSize / 2.f); // center origin for correct collision
     shape.setPosition(pos);
+    shape.setFillColor(sf::Color::Red);
+
 
     int dx = (rand() % 2 == 0) ? 1 : -1;
     int dy = (rand() % 2 == 0) ? 1 : -1;
@@ -54,6 +56,7 @@ sf::FloatRect Enemy::getBounds() const {
     return shape.getGlobalBounds();
 }
 
+
 void Enemy::collideWith(GameObject& other) {
     other.collideWithEnemy(*this);
 }
@@ -61,6 +64,10 @@ void Enemy::collideWith(GameObject& other) {
 void Enemy::collideWithPlayer(Player& player) {
     std::cout << "Enemy hit player!" << std::endl;
     // Handle loss of life here if needed
+}
+
+void Enemy::collideWithSmartEnemy(SmartEnemy& smartEnemy) {
+    // handle logic (e.g., lose life, reset, etc.)
 }
 
 sf::Vector2f Enemy::getPosition() const {

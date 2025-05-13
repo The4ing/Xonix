@@ -14,12 +14,14 @@ public:
     sf::FloatRect getBounds() const override;
     void collideWith(GameObject& other) override;
     void collideWithPlayer(class Player& player) override;
+    void collideWithSmartEnemy(SmartEnemy& smartEnemy) override;
 
     sf::Vector2f getPosition() const;
     sf::Vector2f getDirection() const;
 
 private:
-    sf::RectangleShape shape;
+    sf::CircleShape shape;
+
     sf::Vector2f direction;
     float speed;
     float tileSize;

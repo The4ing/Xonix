@@ -22,6 +22,4 @@ private:
     float tileSize;
     std::vector<std::vector<TileType>> grid;
     sf::RectangleShape tileShape;
-
-
 };

@@ -49,6 +49,9 @@ void Player::update(sf::Time dt) {
     if (left < 0 || right > maxX || top < 0 || bottom > maxY) {
         return;
     }
+    //for debugging
+    TileType tile = getCurrentTile();
+    std::cout << "Player is on tile: " << tileTypeToString(tile) << std::endl;
 
 
     // Allow movement on any tile, including Wall and Filled
@@ -74,11 +77,39 @@ void Player::collideWith(GameObject& other) {
     other.collideWithPlayer(*this);
 }
 
-//void Player::collideWithEnemy(Enemy& enemy) {
-//    std::cout << "Player collided with Enemy!" << std::endl;
-//}
+void Player::collideWithEnemy(Enemy& enemy) {
+    std::cout << "Player collided with Enemy!" << std::endl;
+}
 
 void Player::collideWithWall(Wall& wall) {
-    std::cout << "Player hit a wall (from Player side)" << std::endl;
+   // std::cout << "Player hit a wall (from Player side)" << std::endl;
     //stop(); // or something more sophisticated
+}
+
+//for debugging
+TileType Player::getCurrentTile() const {
+    if (!gridRef) return TileType::Open; // default fallback
+
+    int row = static_cast<int>((actualPos.y + tileSize / 2) / tileSize);
+    int col = static_cast<int>((actualPos.x + tileSize / 2) / tileSize);
+
+    return gridRef->get(row, col);
+}
+
+std::string Player::tileTypeToString(TileType type) {
+    switch (type) {
+    case TileType::Wall:        return "Wall";
+    case TileType::Filled:      return "Filled";
+    case TileType::Open:        return "Open";
+    case TileType::PlayerPath:  return "PlayerPath";
+    default:                    return "Unknown";
+    }
+}
+
+sf::Vector2f Player::getPosition() const {
+    return actualPos;
+}
+
+void Player::collideWithSmartEnemy(SmartEnemy& smartEnemy) {
+    // handle logic (e.g., lose life, reset, etc.)
 }

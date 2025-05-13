@@ -3,7 +3,8 @@
 
 class Player;
 class Enemy;
-class Wall; // new
+class Wall; 
+class SmartEnemy; 
 
 class GameObject {
 public:
@@ -12,8 +13,7 @@ public:
     virtual void collideWith(GameObject& other) = 0;
     virtual void draw(sf::RenderWindow& window) const = 0;
 
-
-
+    virtual void collideWithSmartEnemy(SmartEnemy& smartEnemy) {}
     virtual void collideWithPlayer(Player& player) {}
     virtual void collideWithEnemy(Enemy& enemy) {}
     virtual void collideWithWall(Wall& wall) {} // new

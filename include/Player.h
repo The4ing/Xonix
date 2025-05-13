@@ -22,11 +22,19 @@ public:
     // Inherited from GameObject
     void collideWith(GameObject& other) override;
     void collideWithWall(Wall& wall) override;
-  //  void collideWithEnemy(class Enemy& enemy) override;
+    void collideWithEnemy(class Enemy& enemy) override;
+    void collideWithSmartEnemy(SmartEnemy& smartEnemy) override;
     sf::FloatRect getBounds() const override;
+    sf::Vector2f getPosition() const;
 
 private:
-    void applyFloodFill();
+    TileType getCurrentTile() const; //for debeuging purposes, can be deleted
+    std::string tileTypeToString(TileType type);
+
+
+
+
+    //void applyFloodFill();
 
     sf::Vector2f actualPos;
     sf::RectangleShape shape;

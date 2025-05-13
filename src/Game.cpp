@@ -32,6 +32,14 @@ Game::Game()
     }
     enemies.emplace_back(sf::Vector2f(400, 300), 100.f, grid.getTileSize());
     gameObjects.push_back(&enemies.back());
+    // place SmartEnemy at grid tile (10, 5)
+    float tileSize = grid.getTileSize();
+    sf::Vector2f smartEnemyPos(0 * tileSize, 0 * tileSize);
+    smartEnemies.emplace_back(smartEnemyPos, tileSize);
+    gameObjects.push_back(&smartEnemies.back());
+
+
+
 
 
 }
@@ -83,6 +91,9 @@ void Game::update(sf::Time dt) {
             }
         }
     }
+    for (auto& e : smartEnemies)
+        e.update(dt, grid, player);
+
 }
 
 void Game::render() {
@@ -99,8 +110,10 @@ void Game::render() {
     player.draw(window);
     for (const auto& enemy : enemies)
         enemy.draw(window);
+    for (auto& e : smartEnemies)
+        e.draw(window);
+
 
     hud.draw(window);
-
     window.display();
 }

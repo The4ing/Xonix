@@ -6,6 +6,9 @@
 #include "Wall.h"
 #include "HUD.h"
 #include "Enemy.h"
+#include "SmartEnemy.h"
+
+
 
 class Game {
 public:
@@ -29,6 +32,7 @@ private:
 
     std::vector<Wall> walls;               // holds actual wall objects
     std::vector<Enemy> enemies;
+    std::vector<SmartEnemy> smartEnemies;
     std::vector<GameObject*> gameObjects;
 
 

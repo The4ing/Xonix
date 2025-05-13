@@ -12,6 +12,7 @@ public:
     void collideWith(GameObject& other) override;
     void collideWithPlayer(Player& player) override;
     sf::FloatRect getBounds() const override;
+    void collideWithSmartEnemy(SmartEnemy& smartEnemy) override;
 
 private:
     sf::RectangleShape shape;

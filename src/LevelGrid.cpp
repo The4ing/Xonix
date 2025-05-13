@@ -21,10 +21,10 @@ void LevelGrid::draw(sf::RenderWindow& window) {
         for (int x = 0; x < cols; ++x) {
             switch (grid[y][x]) {
             case TileType::Wall:
-                tileShape.setFillColor(sf::Color::Red); // Grey for walls
+                tileShape.setFillColor(sf::Color(100, 100, 100)); // Grey for walls
                 break;
             case TileType::Filled:
-                tileShape.setFillColor(sf::Color::Red); // Green for filled area
+                tileShape.setFillColor(sf::Color::Green); // Green for filled area
                 break;
             case TileType::Open:
                 tileShape.setFillColor(sf::Color::Black); // Blue for open areas
