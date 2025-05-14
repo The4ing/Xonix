@@ -3,6 +3,8 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include "TileType.h"
+#include <unordered_set>
+#include <queue>
 
 class LevelGrid {
 public:
@@ -16,8 +18,12 @@ public:
     int getCols() const { return cols; }
     float getTileSize() const { return tileSize; }
 
+    void fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions);
+
 
 private:
+
+
     int rows, cols;
     float tileSize;
     std::vector<std::vector<TileType>> grid;

@@ -1,9 +1,8 @@
-﻿#pragma once
+﻿
+#pragma once
 #include <SFML/Graphics.hpp>
 #include "LevelGrid.h"
 #include "GameObject.h"
-#include <iostream>
-using namespace std;
 constexpr float HUD_TOP_Y = 960.0f;
 
 class Player : public GameObject {
@@ -14,36 +13,28 @@ public:
     void update(sf::Time dt);
     void draw(sf::RenderWindow& window) const override;
 
-
     void setWindowSize(sf::Vector2f size);
     void setGrid(LevelGrid* grid);
     void stop();
 
-    // Inherited from GameObject
     void collideWith(GameObject& other) override;
     void collideWithWall(Wall& wall) override;
     void collideWithEnemy(class Enemy& enemy) override;
-    void collideWithSmartEnemy(SmartEnemy& smartEnemy) override;
+    void collideWithSmartEnemy(class SmartEnemy& smartEnemy) override;
+
     sf::FloatRect getBounds() const override;
     sf::Vector2f getPosition() const;
-    
 
-    //for filling the window
     bool getIsDrawingPath() const { return isDrawingPath; }
     void setIsDrawingPath(bool val) { isDrawingPath = val; }
 
-
 private:
-    TileType getCurrentTile() const; //for debeuging purposes, can be deleted
+    TileType getCurrentTile() const;
     std::string tileTypeToString(TileType type);
 
+    std::vector<sf::RectangleShape> trailRects;
 
-
-
-    //void applyFloodFill();
     bool isDrawingPath;
-
-
     sf::Vector2f actualPos;
     sf::RectangleShape shape;
     float tileSize;
