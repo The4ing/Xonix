@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "Enemy.h" // forward declared in GameObject
 
 
@@ -6,7 +6,8 @@ Player::Player(int startX, int startY, float tileSize)
     : tileSize(tileSize),
     moveSpeed(250.0f),
     actualPos(startX* tileSize, startY* tileSize),
-    gridDirection(0, 0)
+    gridDirection(0, 0),
+    isDrawingPath(false)
 {
     shape.setSize(sf::Vector2f(tileSize, tileSize));
     shape.setFillColor(sf::Color::Green);
@@ -26,6 +27,7 @@ void Player::handleInput() {
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  gridDirection = { 0, 1 };
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  gridDirection = { -1, 0 };
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) gridDirection = { 1, 0 };
+   // else gridDirection = { 0, 0 };
 }
 
 void Player::update(sf::Time dt) {
@@ -45,13 +47,27 @@ void Player::update(sf::Time dt) {
     float maxY = HUD_TOP_Y ;
 
 
-    // If next position is out of window bounds � stop movement
+    // If next position is out of window bounds — stop movement
     if (left < 0 || right > maxX || top < 0 || bottom > maxY) {
         return;
     }
     //for debugging
     TileType tile = getCurrentTile();
     std::cout << "Player is on tile: " << tileTypeToString(tile) << std::endl;
+
+    TileType currentTile = getCurrentTile();
+
+    if (currentTile == TileType::Open) {
+        if (!isDrawingPath) {
+            isDrawingPath = true;  //start drawing
+        }
+        int row = static_cast<int>((actualPos.y + tileSize / 2) / tileSize);
+        int col = static_cast<int>((actualPos.x + tileSize / 2) / tileSize);
+        gridRef->set(row, col, TileType::PlayerPath);
+    }
+    else if (currentTile == TileType::Wall && isDrawingPath) {
+        isDrawingPath = false;  //dont drow if its already fiiled
+    }
 
 
     // Allow movement on any tile, including Wall and Filled

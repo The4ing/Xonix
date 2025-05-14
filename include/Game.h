@@ -19,6 +19,7 @@ private:
     void processEvents();
     void update(sf::Time dt);
     void render();
+    void fillEnclosedAreas();
 
     sf::RenderWindow window;
     const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);

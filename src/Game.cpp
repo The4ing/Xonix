@@ -1,17 +1,21 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include "Player.h"
 #include "Wall.h"
 
 Game::Game()
-    : window(sf::VideoMode(1920, 1080), "Xonix Game"),
+    : font(), 
+    hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
+    window(sf::VideoMode(1920, 1080), "Xonix Game"),
     currentLevelNumber(0),
     lives(3),
     closedAreaPercent(0.0f),
-    player(0, 29, 32.0f), //starting position
-    grid(30, 60, 32.0f),
-    hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font)
+    player(0, 29, 32.0f),
+    grid(30, 60, 32.0f)
 {
-    font.loadFromFile("resources/arial.ttf"); // make sure arial.ttf is in your project folder
+    if (!font.loadFromFile("resources/arial.ttf")) {
+        throw std::runtime_error("Failed to load font.");
+    }
+
 
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
@@ -37,9 +41,6 @@ Game::Game()
     sf::Vector2f smartEnemyPos(0 * tileSize, 0 * tileSize);
     smartEnemies.emplace_back(smartEnemyPos, tileSize);
     gameObjects.push_back(&smartEnemies.back());
-
-
-
 
 
 }
@@ -74,15 +75,25 @@ void Game::processEvents() {
 void Game::update(sf::Time dt) {
     player.handleInput();
     player.update(dt);
-    for (auto& enemy : enemies)
-        enemy.update(dt, grid);
 
+    int currentRow = static_cast<int>(player.getPosition().y / grid.getTileSize());
+    int currentCol = static_cast<int>(player.getPosition().x / grid.getTileSize());
+
+    if (grid.get(currentRow, currentCol) == TileType::Wall && player.getIsDrawingPath()) {
+        player.setIsDrawingPath(false);
+        fillEnclosedAreas();
+    }
+
+    for (auto& enemy : enemies) {
+        enemy.update(dt, grid);
+    }
 
     float elapsed = gameClock.getElapsedTime().asSeconds();
     hud.setTime(elapsed);
     hud.setScore(score);
     hud.setLives(lives);
 
+    // Collision detection between game objects
     for (size_t i = 0; i < gameObjects.size(); ++i) {
         for (size_t j = i + 1; j < gameObjects.size(); ++j) {
             if (gameObjects[i]->getBounds().intersects(gameObjects[j]->getBounds())) {
@@ -91,9 +102,10 @@ void Game::update(sf::Time dt) {
             }
         }
     }
-    for (auto& e : smartEnemies)
-        e.update(dt, grid, player);
 
+    for (auto& e : smartEnemies) {
+        e.update(dt, grid, player);
+    }
 }
 
 void Game::render() {
@@ -116,4 +128,20 @@ void Game::render() {
 
     hud.draw(window);
     window.display();
+}
+
+void Game::fillEnclosedAreas() {
+    for (int y = 0; y < grid.getRows(); ++y) {
+        for (int x = 0; x < grid.getCols(); ++x) {
+            if (grid.get(y, x) == TileType::PlayerPath) {
+                grid.set(y, x, TileType::Filled);
+            }
+        }
+    }
+
+   
+    int row = static_cast<int>(player.getPosition().y / grid.getTileSize());
+    int col = static_cast<int>(player.getPosition().x / grid.getTileSize());
+
+    grid.set(row, col, TileType::Filled);
 }

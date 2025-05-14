@@ -26,6 +26,12 @@ public:
     void collideWithSmartEnemy(SmartEnemy& smartEnemy) override;
     sf::FloatRect getBounds() const override;
     sf::Vector2f getPosition() const;
+    
+
+    //for filling the window
+    bool getIsDrawingPath() const { return isDrawingPath; }
+    void setIsDrawingPath(bool val) { isDrawingPath = val; }
+
 
 private:
     TileType getCurrentTile() const; //for debeuging purposes, can be deleted
@@ -35,6 +41,8 @@ private:
 
 
     //void applyFloodFill();
+    bool isDrawingPath;
+
 
     sf::Vector2f actualPos;
     sf::RectangleShape shape;

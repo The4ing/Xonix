@@ -27,7 +27,7 @@ void Enemy::handleCollisionWithWall(const LevelGrid& level) {
     sf::Vector2f pos = shape.getPosition();
 
     // Check horizontal and vertical positions separately
-    sf::Vector2f next = pos + direction * tileSize;
+    sf::Vector2f next = pos + direction * tileSize   ;
 
     int currentRow = static_cast<int>((pos.y + tileSize / 2) / tileSize);
     int currentCol = static_cast<int>((pos.x + tileSize / 2) / tileSize);
