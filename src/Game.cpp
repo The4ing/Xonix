@@ -1,9 +1,10 @@
-﻿#include "Game.h"
+﻿
+#include "Game.h"
 #include "Player.h"
 #include "Wall.h"
 
 Game::Game()
-    : font(), 
+    : font(),
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
     window(sf::VideoMode(1920, 1080), "Xonix Game"),
     currentLevelNumber(0),
@@ -15,7 +16,6 @@ Game::Game()
     if (!font.loadFromFile("resources/arial.ttf")) {
         throw std::runtime_error("Failed to load font.");
     }
-
 
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
@@ -34,17 +34,14 @@ Game::Game()
     for (Wall& wall : walls) {
         gameObjects.push_back(&wall);
     }
+
     enemies.emplace_back(sf::Vector2f(400, 300), 100.f, grid.getTileSize());
     gameObjects.push_back(&enemies.back());
-    // place SmartEnemy at grid tile (10, 5)
-    float tileSize = grid.getTileSize();
-    sf::Vector2f smartEnemyPos(0 * tileSize, 0 * tileSize);
-    smartEnemies.emplace_back(smartEnemyPos, tileSize);
+
+    sf::Vector2f smartEnemyPos(0 * grid.getTileSize(), 0 * grid.getTileSize());
+    smartEnemies.emplace_back(smartEnemyPos, grid.getTileSize());
     gameObjects.push_back(&smartEnemies.back());
-
-
 }
-
 
 void Game::run() {
     sf::Clock clock;
@@ -81,11 +78,16 @@ void Game::update(sf::Time dt) {
 
     if (grid.get(currentRow, currentCol) == TileType::Wall && player.getIsDrawingPath()) {
         player.setIsDrawingPath(false);
-        fillEnclosedAreas();
+        grid.fillEnclosedArea(getEnemyPositions());
     }
+
 
     for (auto& enemy : enemies) {
         enemy.update(dt, grid);
+    }
+
+    for (auto& e : smartEnemies) {
+        e.update(dt, grid, player);
     }
 
     float elapsed = gameClock.getElapsedTime().asSeconds();
@@ -93,7 +95,6 @@ void Game::update(sf::Time dt) {
     hud.setScore(score);
     hud.setLives(lives);
 
-    // Collision detection between game objects
     for (size_t i = 0; i < gameObjects.size(); ++i) {
         for (size_t j = i + 1; j < gameObjects.size(); ++j) {
             if (gameObjects[i]->getBounds().intersects(gameObjects[j]->getBounds())) {
@@ -102,15 +103,10 @@ void Game::update(sf::Time dt) {
             }
         }
     }
-
-    for (auto& e : smartEnemies) {
-        e.update(dt, grid, player);
-    }
 }
 
 void Game::render() {
     window.clear();
-
     grid.draw(window);
 
     for (GameObject* obj : gameObjects) {
@@ -120,28 +116,35 @@ void Game::render() {
     }
 
     player.draw(window);
+
     for (const auto& enemy : enemies)
         enemy.draw(window);
+
     for (auto& e : smartEnemies)
         e.draw(window);
-
 
     hud.draw(window);
     window.display();
 }
 
 void Game::fillEnclosedAreas() {
-    for (int y = 0; y < grid.getRows(); ++y) {
-        for (int x = 0; x < grid.getCols(); ++x) {
-            if (grid.get(y, x) == TileType::PlayerPath) {
-                grid.set(y, x, TileType::Filled);
-            }
-        }
+    std::vector<sf::Vector2f> enemyPositions;
+    for (auto& e : enemies)
+        enemyPositions.push_back(e.getPosition());
+    for (auto& e : smartEnemies)
+        enemyPositions.push_back(e.getPosition());
+
+    grid.fillEnclosedArea(enemyPositions);
+}
+
+
+std::vector<sf::Vector2f> Game::getEnemyPositions() const {
+    std::vector<sf::Vector2f> positions;
+    for (const auto& e : enemies) {
+        positions.push_back(e.getPosition());
     }
-
-   
-    int row = static_cast<int>(player.getPosition().y / grid.getTileSize());
-    int col = static_cast<int>(player.getPosition().x / grid.getTileSize());
-
-    grid.set(row, col, TileType::Filled);
+    for (const auto& e : smartEnemies) {
+        positions.push_back(e.getPosition());
+    }
+    return positions;
 }

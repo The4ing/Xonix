@@ -14,6 +14,7 @@ public:
 
     void update(sf::Time dt, const LevelGrid& grid, const Player& player);
     void draw(sf::RenderWindow& window) const override;
+    sf::Vector2f getPosition() const;
 
     sf::FloatRect getBounds() const override;
     void collideWith(GameObject& other) override;

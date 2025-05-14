@@ -14,13 +14,14 @@ class Game {
 public:
     Game();
     void run();
+    void fillEnclosedAreas();
 
 private:
     void processEvents();
     void update(sf::Time dt);
     void render();
-    void fillEnclosedAreas();
 
+    std::vector<sf::Vector2f> getEnemyPositions() const;
     sf::RenderWindow window;
     const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
 

@@ -142,3 +142,6 @@ void SmartEnemy::collideWithPlayer(Player& player) {
     std::cout << "Smart enemy hit player!\n";
 }
 
+sf::Vector2f SmartEnemy::getPosition() const {
+    return shape.getPosition();
+}
