@@ -51,7 +51,7 @@ void Player::update(sf::Time dt) {
     }
     //for debugging
     TileType tile = getCurrentTile();
-    std::cout << "Player is on tile: " << tileTypeToString(tile) << std::endl;
+  //  std::cout << "Player is on tile: " << tileTypeToString(tile) << std::endl;
 
 
     // Allow movement on any tile, including Wall and Filled

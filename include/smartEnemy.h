@@ -28,5 +28,6 @@ private:
     std::queue<sf::Vector2i> path;
 
     void findPath(const LevelGrid& grid, const Player& player);
-    void moveAlongPath(sf::Time dt);
+    void moveAlongPath(sf::Time dt, const LevelGrid& grid);
+
 };

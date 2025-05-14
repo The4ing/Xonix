@@ -29,15 +29,33 @@ void SmartEnemy::update(sf::Time dt, const LevelGrid& grid, const Player& player
         pathClock.restart();
     }
 
-    moveAlongPath(dt);
+    moveAlongPath(dt, grid);
+    std::cout << "Path length: " << path.size() << std::endl;
+
 }
 
-void SmartEnemy::moveAlongPath(sf::Time dt) {
+void SmartEnemy::moveAlongPath(sf::Time dt, const LevelGrid& grid) {
     if (path.empty()) return;
 
-    sf::Vector2f currentPos = shape.getPosition();
     sf::Vector2i targetTile = path.front();
+    TileType tile = grid.get(targetTile.y, targetTile.x);
+    std::cout << "SmartEnemy trying to move to tile (" << targetTile.x << ", " << targetTile.y << ") - TileType: ";
 
+    switch (tile) {
+    case TileType::Wall: std::cout << "Wall"; break;
+    case TileType::Filled: std::cout << "Filled"; break;
+    case TileType::Open: std::cout << "Open"; break;
+    case TileType::PlayerPath: std::cout << "PlayerPath"; break;
+    }
+    std::cout << std::endl;
+
+
+    if (tile != TileType::Wall && tile != TileType::Filled) {
+        // ? Stop if the next step is illegal
+        return;
+    }
+
+    sf::Vector2f currentPos = shape.getPosition();
     sf::Vector2f targetPos = {
         targetTile.x * tileSize + tileSize / 2.f,
         targetTile.y * tileSize + tileSize / 2.f
@@ -48,25 +66,33 @@ void SmartEnemy::moveAlongPath(sf::Time dt) {
 
     if (dist < moveSpeed * dt.asSeconds()) {
         shape.setPosition(targetPos);
-        path.pop();
+        path.pop(); // Step taken
     }
     else {
-        direction /= dist; // normalize
+        direction /= dist;
         shape.move(direction * moveSpeed * dt.asSeconds());
     }
+    sf::Vector2i currentTile = {
+    static_cast<int>(shape.getPosition().x / tileSize),
+    static_cast<int>(shape.getPosition().y / tileSize)
+    };
+    std::cout << "SmartEnemy currently at tile (" << currentTile.x << ", " << currentTile.y << ")" << std::endl;
+
 }
 
+
+
 void SmartEnemy::findPath(const LevelGrid& grid, const Player& player) {
-    path = std::queue<sf::Vector2i>(); // clear path
+    path = std::queue<sf::Vector2i>();
 
     int rows = grid.getRows();
     int cols = grid.getCols();
 
     auto toGrid = [this](sf::Vector2f pos) -> sf::Vector2i {
-        return sf::Vector2i(
+        return {
             static_cast<int>(pos.x / tileSize),
             static_cast<int>(pos.y / tileSize)
-        );
+        };
         };
 
     sf::Vector2i start = toGrid(shape.getPosition());
@@ -80,15 +106,13 @@ void SmartEnemy::findPath(const LevelGrid& grid, const Player& player) {
     visited.insert(start);
 
     const std::vector<sf::Vector2i> directions = {
-        {1,0}, {-1,0}, {0,1}, {0,-1}
+        {1, 0}, {-1, 0}, {0, 1}, {0, -1}
     };
 
     while (!q.empty()) {
         sf::Vector2i curr = q.front(); q.pop();
 
-        if (curr == goal) {
-            break;
-        }
+        if (curr == goal) break;
 
         for (auto dir : directions) {
             sf::Vector2i next = curr + dir;
@@ -98,32 +122,25 @@ void SmartEnemy::findPath(const LevelGrid& grid, const Player& player) {
 
             if (visited.count(next)) continue;
 
-            TileType tile = grid.get(next.y, next.x);
-            if (tile != TileType::Wall && tile != TileType::Filled)
-                continue;
-
-            q.push(next);
+            // ? No tile filtering here!
             visited.insert(next);
             cameFrom[next] = curr;
+            q.push(next);
         }
     }
 
-    // Backtrack path
-    if (!cameFrom.count(goal)) return; // no path found
+    if (!cameFrom.count(goal)) return; // No path found
 
-    sf::Vector2i current = goal;
     std::vector<sf::Vector2i> revPath;
-
-    while (current != start) {
-        revPath.push_back(current);
-        current = cameFrom[current];
-    }
+    for (sf::Vector2i at = goal; at != start; at = cameFrom[at])
+        revPath.push_back(at);
 
     std::reverse(revPath.begin(), revPath.end());
 
-    for (auto& step : revPath)
+    for (const auto& step : revPath)
         path.push(step);
 }
+
 
 void SmartEnemy::draw(sf::RenderWindow& window) const {
     window.draw(shape);
