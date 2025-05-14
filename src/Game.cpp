@@ -127,15 +127,6 @@ void Game::render() {
     window.display();
 }
 
-void Game::fillEnclosedAreas() {
-    std::vector<sf::Vector2f> enemyPositions;
-    for (auto& e : enemies)
-        enemyPositions.push_back(e.getPosition());
-    for (auto& e : smartEnemies)
-        enemyPositions.push_back(e.getPosition());
-
-    grid.fillEnclosedArea(enemyPositions);
-}
 
 
 std::vector<sf::Vector2f> Game::getEnemyPositions() const {

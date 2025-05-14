@@ -1,4 +1,4 @@
-
+ן»¿
 #include "LevelGrid.h"
 #include <iostream>
 #include <unordered_set>
@@ -65,99 +65,74 @@ void LevelGrid::set(int row, int col, TileType type) {
 }
 
 void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions) {
-    std::vector<std::unordered_set<sf::Vector2i>> enclosedAreas;
-    std::unordered_set<sf::Vector2i> visited;
-
-    const std::vector<sf::Vector2i> directions = {
-        {1, 0}, {-1, 0}, {0, 1}, {0, -1}
-    };
-
-    // המר מיקומי אויבים לתאים
     std::unordered_set<sf::Vector2i> enemyTiles;
     for (const auto& e : enemyPositions) {
-        int ex = static_cast<int>(e.x / tileSize);
-        int ey = static_cast<int>(e.y / tileSize);
-        enemyTiles.insert({ ex, ey });
-        std::cout << "- Enemy at (" << ex << ", " << ey << ")\n";
+        enemyTiles.insert({ static_cast<int>(e.x / tileSize), static_cast<int>(e.y / tileSize) });
     }
 
-    int scanned = 0;
+    std::unordered_set<sf::Vector2i> visited;
+    std::vector<std::unordered_set<sf::Vector2i>> enclosedAreas;
+    const std::vector<sf::Vector2i> directions = { {1,0}, {-1,0}, {0,1}, {0,-1} };
 
-    for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < cols; ++x) {
-            sf::Vector2i start(x, y);
-            if (get(y, x) != TileType::Open || visited.count(start)) continue;
+    auto inBounds = [&](sf::Vector2i p) {
+        return p.x >= 0 && p.x < cols && p.y >= 0 && p.y < rows;
+        };
 
-            std::queue<sf::Vector2i> q;
-            std::unordered_set<sf::Vector2i> area;
-            bool touchesBorder = false;
+    auto bfs = [&](sf::Vector2i start) {
+        std::queue<sf::Vector2i> q;
+        std::unordered_set<sf::Vector2i> area;
+        bool touchesBorder = false;
 
-            q.push(start);
-            visited.insert(start);
-            area.insert(start);
-            scanned++;
+        q.push(start);
+        visited.insert(start);
+        area.insert(start);
 
-            while (!q.empty()) {
-                sf::Vector2i curr = q.front(); q.pop();
+        while (!q.empty()) {
+            auto curr = q.front(); q.pop();
+            if (curr.x == 0 || curr.x == cols - 1 || curr.y == 0 || curr.y == rows - 1)
+                touchesBorder = true;
 
-                if (curr.x == 0 || curr.x == cols - 1 || curr.y == 0 || curr.y == rows - 1)
-                    touchesBorder = true;
-
-                for (auto dir : directions) {
-                    sf::Vector2i next = curr + dir;
-                    if (next.x < 0 || next.x >= cols || next.y < 0 || next.y >= rows)
-                        continue;
-
-                    if (get(next.y, next.x) == TileType::Open && !visited.count(next)) {
-                        visited.insert(next);
-                        q.push(next);
-                        area.insert(next);
-                    }
-                }
-            }
-
-            if (!touchesBorder) {
-                std::cout << "Found enclosed area with " << area.size() << " tiles\n";
-                enclosedAreas.push_back(area);
+            for (const auto& d : directions) {
+                sf::Vector2i next = curr + d;
+                if (!inBounds(next) || visited.count(next) || get(next.y, next.x) != TileType::Open) continue;
+                q.push(next);
+                visited.insert(next);
+                area.insert(next);
             }
         }
-    }
 
-    std::cout << "Scanned total Open tiles: " << scanned << "\n";
-    std::cout << "Total enclosed areas found: " << enclosedAreas.size() << "\n";
+        if (!touchesBorder) enclosedAreas.push_back(area);
+        };
 
-    bool atLeastOneFilled = false;
+    // Scan grid for Open areas and run BFS
+    for (int y = 0; y < rows; ++y)
+        for (int x = 0; x < cols; ++x)
+            if (get(y, x) == TileType::Open && !visited.count({ x, y }))
+                bfs({ x, y });
 
+    bool filled = false;
     for (const auto& area : enclosedAreas) {
-        bool hasEnemy = false;
-        for (const auto& pos : area) {
-            if (enemyTiles.count(pos)) {
-                hasEnemy = true;
-                std::cout << "Area skipped due to enemy at (" << pos.x << ", " << pos.y << ")\n";
-                break;
-            }
-        }
+        bool hasEnemy = std::any_of(area.begin(), area.end(), [&](const sf::Vector2i& pos) {
+            return enemyTiles.count(pos);
+            });
 
         if (!hasEnemy) {
-            for (const auto& pos : area) {
+            for (const auto& pos : area)
                 set(pos.y, pos.x, TileType::Filled);
-            }
-            atLeastOneFilled = true;
+            filled = true;
         }
     }
 
-    if (!atLeastOneFilled) {
+    if (!filled)
         std::cout << "No area was filled (enemies in all areas). Only trail will be filled.\n";
-    }
 
-    int pathToFilled = 0;
+    int pathConverted = 0;
     for (int y = 0; y < rows; ++y)
         for (int x = 0; x < cols; ++x)
             if (get(y, x) == TileType::PlayerPath) {
                 set(y, x, TileType::Filled);
-                pathToFilled++;
+                ++pathConverted;
             }
 
-    std::cout << "Converted PlayerPath to Filled: " << pathToFilled << " tiles\n";
+    std::cout << "Converted PlayerPath to Filled: " << pathConverted << " tiles\n";
 }
-

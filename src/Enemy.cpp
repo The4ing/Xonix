@@ -37,12 +37,17 @@ void Enemy::handleCollisionWithWall(const LevelGrid& level) {
 
     // Separate checks for Y and X
     // Check vertical collision (Y axis)
-    if (level.get(nextRow, currentCol) == TileType::Wall || level.get(nextRow, currentCol) == TileType::Filled) {
+    
+    
+    if (level.get(nextRow, currentCol) == TileType::Wall || level.get(nextRow, currentCol) == TileType::Filled
+        || level.get(nextRow, currentCol) == TileType::PlayerPath) {
         direction.y *= -1; // reverse vertical
     }
 
     // Check horizontal collision (X axis)
-    if (level.get(currentRow, nextCol) == TileType::Wall || level.get(currentRow, nextCol) == TileType::Filled) {
+    
+    if (level.get(currentRow, nextCol) == TileType::Wall || level.get(currentRow, nextCol) == TileType::Filled
+        || level.get(currentRow, nextCol) == TileType::PlayerPath) {
         direction.x *= -1; // reverse horizontal
     }
 }

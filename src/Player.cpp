@@ -56,16 +56,14 @@ void Player::update(sf::Time dt) {
             isDrawingPath = true;
         }
 
-        // 📍 חשב את מיקום השחקן כתא ברשת
+      
         int row = static_cast<int>((actualPos.y + tileSize / 2) / tileSize);
         int col = static_cast<int>((actualPos.x + tileSize / 2) / tileSize);
 
-        // 🎯 סמן את התא כ־PlayerPath רק אם הוא עדיין Open
         if (gridRef->get(row, col) == TileType::Open) {
             gridRef->set(row, col, TileType::PlayerPath);
         }
 
-        // 🔲 אופציונלי: ציור גרפי של הנקודה
         sf::RectangleShape dot(sf::Vector2f(tileSize, tileSize));
         dot.setFillColor(sf::Color(100, 100, 100));
         dot.setPosition(actualPos);
@@ -73,7 +71,7 @@ void Player::update(sf::Time dt) {
     }
     else if (currentTile == TileType::Wall && isDrawingPath) {
         isDrawingPath = false;
-        trailRects.clear();  // נקה את השביל הגרפי
+        trailRects.clear(); 
     }
 
     actualPos = nextPos;
