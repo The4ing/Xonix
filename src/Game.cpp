@@ -1,27 +1,68 @@
-﻿
-#include "Game.h"
+﻿#include "Game.h"
 #include "Player.h"
 #include "Wall.h"
+#include <stdexcept>
+#include <iostream>
 
+
+// בנאי
 Game::Game()
-    : font(),
+    : levelLoader("C:/Users/User/source/repos/The4ing/Xonix/resources/levels.txt"),  
+    font(),
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
-    window(sf::VideoMode(1920, 1080), "Xonix Game"),
     currentLevelNumber(0),
     lives(3),
     closedAreaPercent(0.0f),
     player(0, 29, 32.0f),
     grid(30, 60, 32.0f)
 {
+
     if (!font.loadFromFile("resources/arial.ttf")) {
         throw std::runtime_error("Failed to load font.");
     }
+}
 
+
+void Game::loadFirstLevel() {
+    loadLevel(0);  
+}
+
+
+void Game::loadLevel(int levelNumber) {
+    levelLoader.load();
+
+    currentLevelNumber = levelNumber;
+
+   
+    // נקה את האובייקטים הקודמים
+    enemies.clear();
+    smartEnemies.clear();
+    walls.clear();
+    gameObjects.clear();
+
+
+    settings = levelLoader.getSettings(); // קודם נטען את ההגדרות
+    window.create(sf::VideoMode(settings.windowSize.x, settings.windowSize.y), "Xonix Game");
+    lives = settings.initialLives;
+
+    // רק אחרי זה נטען את גריד, אויבים וכו'
+    levelLoader.loadLevel(currentLevelNumber, grid, enemies, smartEnemies);
+
+
+    // עדכן את השחקן בהתאם לגודל החלון והגריד
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
 
+    std::cout << "Window size: " << settings.windowSize.x << "x" << settings.windowSize.y << std::endl;
+
+   
+
+  
+
+    // הוסף את השחקן לרשימת האובייקטים
     gameObjects.push_back(&player);
 
+    // עבור על כל התאים בגריד והוסף קירות לפי הצורך
     for (int row = 0; row < grid.getRows(); ++row) {
         for (int col = 0; col < grid.getCols(); ++col) {
             if (grid.get(row, col) == TileType::Wall) {
@@ -31,19 +72,52 @@ Game::Game()
         }
     }
 
-    for (Wall& wall : walls) {
+    // הוסף קירות, אויבים רגילים וחכמים לרשימת האובייקטים
+    for (auto& wall : walls)
         gameObjects.push_back(&wall);
-    }
 
-    enemies.emplace_back(sf::Vector2f(400, 300), 100.f, grid.getTileSize());
-    gameObjects.push_back(&enemies.back());
+    for (auto& enemy : enemies)
+        gameObjects.push_back(&enemy);
 
-    sf::Vector2f smartEnemyPos(0 * grid.getTileSize(), 0 * grid.getTileSize());
-    smartEnemies.emplace_back(smartEnemyPos, grid.getTileSize());
-    gameObjects.push_back(&smartEnemies.back());
+    for (auto& smart : smartEnemies)
+        gameObjects.push_back(&smart);
 }
 
+
+
+
+void Game::showSplashScreen() {
+    sf::RenderWindow splash(sf::VideoMode(800, 600), "Welcome");
+
+    sf::Text title("XONIX", font, 80);
+    title.setPosition(220, 200);
+    title.setFillColor(sf::Color::White);
+
+    sf::Text prompt("Press any key to start", font, 30);
+    prompt.setPosition(240, 350);
+    prompt.setFillColor(sf::Color::White);
+
+    while (splash.isOpen()) {
+        sf::Event event;
+        while (splash.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                splash.close();
+            else if (event.type == sf::Event::KeyPressed)
+                splash.close();
+        }
+
+        splash.clear(sf::Color::Black);
+        splash.draw(title);
+        splash.draw(prompt);
+        splash.display();
+    }
+}
+
+
 void Game::run() {
+    showSplashScreen();   
+    loadFirstLevel();     
+
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
@@ -81,7 +155,6 @@ void Game::update(sf::Time dt) {
         grid.fillEnclosedArea(getEnemyPositions());
     }
 
-
     for (auto& enemy : enemies) {
         enemy.update(dt, grid);
     }
@@ -103,39 +176,60 @@ void Game::update(sf::Time dt) {
             }
         }
     }
+    
+    if (closedAreaPercent >= 75.0f) {
+        if (currentLevelNumber + 1 < levelLoader.getLevelCount()) {
+            loadLevel(currentLevelNumber + 1);
+        }
+        else {
+           //need to add window for wininng
+            window.close(); 
+        }
+    }
+
 }
 
 void Game::render() {
     window.clear();
+
+    // 1. Draw grid
     grid.draw(window);
 
-    for (GameObject* obj : gameObjects) {
-        if (auto* wall = dynamic_cast<Wall*>(obj)) {
-            wall->draw(window);
-        }
+    // 2. Draw walls
+    for (const auto& wall : walls) {
+        wall.draw(window);
     }
+       
 
+    // 3. Draw enemies
+    for (const auto& enemy : enemies) {
+        enemy.draw(window);
+    }
+        
+
+    // 4. Draw smart enemies
+    for (auto& smartEnemy : smartEnemies) {
+        smartEnemy.draw(window);
+    }
+   
+
+    // 5. Draw player
     player.draw(window);
 
-    for (const auto& enemy : enemies)
-        enemy.draw(window);
-
-    for (auto& e : smartEnemies)
-        e.draw(window);
-
+    // 6. Draw HUD
     hud.draw(window);
+
     window.display();
 }
 
 
-
 std::vector<sf::Vector2f> Game::getEnemyPositions() const {
     std::vector<sf::Vector2f> positions;
-    for (const auto& e : enemies) {
+    for (const auto& e : enemies)
         positions.push_back(e.getPosition());
-    }
-    for (const auto& e : smartEnemies) {
+
+    for (const auto& e : smartEnemies)
         positions.push_back(e.getPosition());
-    }
+
     return positions;
 }

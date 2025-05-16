@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "Player.h"
@@ -7,12 +7,14 @@
 #include "HUD.h"
 #include "Enemy.h"
 #include "SmartEnemy.h"
-
+#include "LevelLoader.h"
 
 
 class Game {
 public:
     Game();
+    void loadFirstLevel();
+    void showSplashScreen();
     void run();
     
 
@@ -42,4 +44,10 @@ private:
     HUD hud;
     sf::Clock gameClock;
     int score = 0;
+    
+    LevelLoader levelLoader;
+    std::vector<LevelData> levelDataList;
+    GameSettings settings;
+
+    void loadLevel(int index);  // הכרזה לפונקציה שאתה מגדיר בקובץ cpp
 };
