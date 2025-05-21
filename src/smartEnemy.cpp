@@ -21,6 +21,7 @@ SmartEnemy::SmartEnemy(const sf::Vector2f& startPos, float tileSize)
     shape.setOrigin(tileSize / 2.f, tileSize / 2.f);
     shape.setFillColor(sf::Color::Yellow);
     shape.setPosition(startPos);
+    this->startPos = startPos;
 }
 
 void SmartEnemy::update(sf::Time dt, const LevelGrid& grid, const Player& player) {
@@ -139,9 +140,14 @@ void SmartEnemy::collideWith(GameObject& other) {
 
 
 void SmartEnemy::collideWithPlayer(Player& player) {
-    std::cout << "Smart enemy hit player!\n";
+  //  std::cout << "Smart enemy hit player!\n";
 }
 
 sf::Vector2f SmartEnemy::getPosition() const {
     return shape.getPosition();
+}
+
+void SmartEnemy::resetToStart() {
+    shape.setPosition(startPos);
+    path = {};
 }

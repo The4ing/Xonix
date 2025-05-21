@@ -18,7 +18,7 @@ bool LevelLoader::load() {
         return false;
     }
 
-    std::cout << "Settings line: " << line << std::endl;
+  //  std::cout << "Settings line: " << line << std::endl;
 
     std::istringstream settingsStream(line);
     unsigned int w, h;

@@ -20,12 +20,14 @@ public:
     void collideWith(GameObject& other) override;
     void collideWithPlayer(Player& player) override;
 
+    void resetToStart();
+
 private:
     sf::CircleShape shape;
     float tileSize;
     float moveSpeed = 100.f;
     sf::Clock pathClock;
-
+    sf::Vector2f startPos;
     std::queue<sf::Vector2i> path;
 
     void findPath(const LevelGrid& grid, const Player& player);

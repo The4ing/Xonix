@@ -15,6 +15,7 @@ Player::Player(int startX, int startY, float tileSize)
     shape.setSize(sf::Vector2f(tileSize, tileSize));
     shape.setFillColor(sf::Color::Green);
     shape.setPosition(actualPos);
+    startPos = actualPos;
 }
 
 void Player::setWindowSize(sf::Vector2f size) {
@@ -51,37 +52,32 @@ void Player::update(sf::Time dt) {
     }
 
     TileType currentTile = getCurrentTile();
-    
-    
-
 
     if (currentTile == TileType::Open) {
-       
         if (!isDrawingPath) {
+            std::cout << "[Player::update] setting to true" << std::endl;
             isDrawingPath = true;
         }
 
-      
+        // צבע את הריבוע של השחקן כתא נתיב
         int row = static_cast<int>((actualPos.y + tileSize / 2) / tileSize);
         int col = static_cast<int>((actualPos.x + tileSize / 2) / tileSize);
-
         if (gridRef->get(row, col) == TileType::Open) {
             gridRef->set(row, col, TileType::PlayerPath);
         }
 
-        sf::RectangleShape dot(sf::Vector2f(tileSize, tileSize));
-        dot.setFillColor(sf::Color(255, 105, 180));  
-        dot.setPosition(actualPos);
-        trailRects.push_back(dot);
     }
-    else if (currentTile == TileType::Wall && isDrawingPath) {
-        isDrawingPath = false;
-        trailRects.clear(); 
-    }
+    //else if (currentTile == TileType::Wall && isDrawingPath) {
+    //    std::cout << "[Player::update] setting to false" << std::endl;
+    //    isDrawingPath = false;
+    //    trailRects.clear();  // נקה את הנקודות הגרפיות (לא את הרשת)
+    //}
 
     actualPos = nextPos;
     shape.setPosition(actualPos);
+
 }
+
 
 void Player::draw(sf::RenderWindow& window) const {
     for (const auto& dot : trailRects)
@@ -137,4 +133,21 @@ std::string Player::tileTypeToString(TileType type) {
 
 sf::Vector2f Player::getPosition() const {
     return actualPos;
+}
+
+void Player::resetToStart() {
+    std::cout << "[Player::resetToStart] isDrawingPath was " << std::boolalpha << isDrawingPath << " -> false" << std::endl;
+    actualPos = startPos;
+    shape.setPosition(actualPos);
+    gridDirection = { 0, 0 };
+    isDrawingPath = false;
+    trailRects.clear();
+}
+
+sf::Vector2i Player::getDirection() const {
+    return gridDirection;
+}
+
+float Player::getSpeed() const {
+    return moveSpeed;
 }

@@ -27,12 +27,18 @@ public:
 
     bool getIsDrawingPath() const { return isDrawingPath; }
     void setIsDrawingPath(bool val) { isDrawingPath = val; }
-   
+
+    void resetToStart();
+    sf::Vector2i getDirection() const;
+    float getSpeed() const;
 
 private:
+
+    sf::Vector2f previousPos;
+
     TileType getCurrentTile() const;
     std::string tileTypeToString(TileType type);
-
+    sf::Vector2f startPos;
     std::vector<sf::RectangleShape> trailRects;
 
     bool isDrawingPath;

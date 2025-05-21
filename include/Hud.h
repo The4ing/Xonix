@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <sstream>
 
 class HUD {
 public:
@@ -14,8 +15,13 @@ public:
 
 private:
     sf::RectangleShape background;
+
     sf::Text scoreText;
     sf::Text livesText;
     sf::Text timeText;
     sf::Text areaText;
+
+    // **Progress Bar ??Area**
+    sf::RectangleShape areaBarBg;
+    sf::RectangleShape areaBarFill;
 };

@@ -30,10 +30,10 @@ private:
     int currentLevelNumber;
     int lives;
     float closedAreaPercent;
-
+    void updateClosedAreaPercent();
     Player player;
     LevelGrid grid;
-
+    float remainingTime;    // ב־שניות
     std::vector<Wall> walls;               // holds actual wall objects
     std::vector<Enemy> enemies;
     std::vector<SmartEnemy> smartEnemies;

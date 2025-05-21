@@ -7,7 +7,7 @@
 
 
 Game::Game()
-    : levelLoader("C:/Users/User/source/repos/The4ing/Xonix/resources/levels.txt"),  
+    : levelLoader("resources/levels.txt"),  
     font(),
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
     currentLevelNumber(0),
@@ -16,6 +16,9 @@ Game::Game()
     player(0, 29, 32.0f),
     grid(30, 60, 32.0f)
 {
+    // Game.cpp, לאחר קריאת loadLevel(...)
+    remainingTime = 120.f;  // 2 דקות = 120 שניות
+    gameClock.restart();    // אם אתה משתמש גם ב־gameClock
 
     if (!font.loadFromFile("resources/arial.ttf")) {
         throw std::runtime_error("Failed to load font.");
@@ -50,7 +53,7 @@ void Game::loadLevel(int levelNumber) {
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
 
-    std::cout << "Window size: " << settings.windowSize.x << "x" << settings.windowSize.y << std::endl;
+   // std::cout << "Window size: " << settings.windowSize.x << "x" << settings.windowSize.y << std::endl;
 
     gameObjects.push_back(&player);
 
@@ -136,30 +139,59 @@ void Game::processEvents() {
 }
 
 void Game::update(sf::Time dt) {
+    // 0. עדכון הזמן הנותר
+    remainingTime -= dt.asSeconds();
+    if (remainingTime < 0.f) {
+        remainingTime = 0.f;
+        // אם רוצים: Game Over
+    }
+
+    // 1. קריאת קלט ועדכון השחקן
     player.handleInput();
+    sf::Vector2i dir = player.getDirection();
     player.update(dt);
 
-    int currentRow = static_cast<int>(player.getPosition().y / grid.getTileSize());
-    int currentCol = static_cast<int>(player.getPosition().x / grid.getTileSize());
+    // 2. חשב חצי־תא והבטח גבולות
+    sf::Vector2f pPos = player.getPosition();
+    float tileSize = grid.getTileSize();
+    int row = static_cast<int>(pPos.y / tileSize);
+    int col = static_cast<int>(pPos.x / tileSize);
+    float fracY = (pPos.y / tileSize) - row;
+    float fracX = (pPos.x / tileSize) - col;
 
-    if (grid.get(currentRow, currentCol) == TileType::Wall && player.getIsDrawingPath()) {
+    int nextRow = row;
+    int nextCol = col;
+    if (dir.x > 0 && fracX >= 0.5f)      nextCol = col + 1;
+    else if (dir.x < 0 && fracX <= 0.5f) nextCol = col - 1;
+    if (dir.y > 0 && fracY >= 0.5f)      nextRow = row + 1;
+    else if (dir.y < 0 && fracY <= 0.5f) nextRow = row - 1;
+
+    nextRow = std::clamp(nextRow, 0, grid.getRows() - 1);
+    nextCol = std::clamp(nextCol, 0, grid.getCols() - 1);
+
+    TileType nextTile = grid.get(nextRow, nextCol);
+
+    // 3. בדיקה על חצי־התא הבא
+    if ((nextTile == TileType::Wall || nextTile == TileType::Filled)
+        && player.getIsDrawingPath()) {
         player.setIsDrawingPath(false);
         grid.fillEnclosedArea(getEnemyPositions());
+
+        // עדכון אחוז סגור מיד אחרי fill
+        updateClosedAreaPercent();
     }
 
+    // 4. עדכון אויבים רגילים
     for (auto& enemy : enemies) {
         enemy.update(dt, grid);
+        // …לוגיקת התנגשויות עם PlayerPath…
     }
 
-    for (auto& e : smartEnemies) {
-        e.update(dt, grid, player);
-    }
+    // 5. עדכון אויבים חכמים
+    for (auto& smart : smartEnemies)
+        smart.update(dt, grid, player);
 
-    float elapsed = gameClock.getElapsedTime().asSeconds();
-    hud.setTime(elapsed);
-    hud.setScore(score);
-    hud.setLives(lives);
-
+    // 6. בדיקת התנגשויות בין כל ה־GameObjects
     for (size_t i = 0; i < gameObjects.size(); ++i) {
         for (size_t j = i + 1; j < gameObjects.size(); ++j) {
             if (gameObjects[i]->getBounds().intersects(gameObjects[j]->getBounds())) {
@@ -168,21 +200,16 @@ void Game::update(sf::Time dt) {
             }
         }
     }
-    closedAreaPercent = grid.calculateClosedAreaPercent(); 
+
+    // 7. עדכון HUD — רק פעם אחת, עם remainingTime ועם closedAreaPercent
+    hud.setTime(remainingTime);
+    hud.setScore(score);
+    hud.setLives(lives);
     hud.setAreaPercent(closedAreaPercent);
-
-    
-    if (closedAreaPercent >= 75.0f) {
-        if (currentLevelNumber + 1 < levelLoader.getLevelCount()) {
-            loadLevel(currentLevelNumber + 1);
-        }
-        else {
-            window.close();
-        }
-    }
-
-
 }
+
+
+
 
 void Game::render() {
     window.clear();
@@ -226,4 +253,28 @@ std::vector<sf::Vector2f> Game::getEnemyPositions() const {
         positions.push_back(e.getPosition());
 
     return positions;
+}
+
+void Game::updateClosedAreaPercent() {
+    int openCount = 0;
+    int filledCount = 0;
+    int rows = grid.getRows();
+    int cols = grid.getCols();
+
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            TileType t = grid.get(y, x);
+            if (t == TileType::Open)   ++openCount;
+            else if (t == TileType::Filled) ++filledCount;
+        }
+    }
+
+    // סכימת שני הסוגים היא בסך-הכל תאי ה-Open המקוריים
+    int totalOriginalOpen = openCount + filledCount;
+    if (totalOriginalOpen > 0) {
+        closedAreaPercent = 100.f * filledCount / totalOriginalOpen;
+    }
+    else {
+        closedAreaPercent = 0.f;
+    }
 }
