@@ -11,6 +11,7 @@ Game::Game()
     font(),
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
     currentLevelNumber(0),
+    requiredAreaPercent(0.0f),
     lives(3),
     closedAreaPercent(0.0f),
     player(0, 29, 32.0f),
@@ -44,8 +45,10 @@ void Game::loadLevel(int levelNumber) {
 
 
     settings = levelLoader.getSettings(); 
+    levelDataList = levelLoader.getLevelData();
     window.create(sf::VideoMode(settings.windowSize.x, settings.windowSize.y), "Xonix Game");
     lives = settings.initialLives;
+    requiredAreaPercent = levelDataList[levelNumber].initialAreaPercent;
 
     levelLoader.loadLevel(currentLevelNumber, grid, enemies, smartEnemies);
 
@@ -179,7 +182,22 @@ void Game::update(sf::Time dt) {
 
         // עדכון אחוז סגור מיד אחרי fill
         updateClosedAreaPercent();
+
+        // בדיקת מעבר שלב
+        if (closedAreaPercent >= requiredAreaPercent) {
+            std::cout << "Level complete!" << std::endl;
+            currentLevelNumber++;
+
+            if (currentLevelNumber >= levelDataList.size()) {
+                std::cout << "All levels completed. You win!" << std::endl;
+                window.close();  // או לעבור למסך ניצחון
+            }
+            else {
+                loadLevel(currentLevelNumber);
+            }
+        }
     }
+
 
     // 4. עדכון אויבים רגילים
     for (auto& enemy : enemies) {

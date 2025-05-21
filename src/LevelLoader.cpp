@@ -32,7 +32,7 @@ bool LevelLoader::load() {
         std::istringstream ss(line);
         LevelData level;
         int enemyCount;
-        if (!(ss >> level.requiredAreaPercent >> enemyCount)) {
+        if (!(ss >> level.initialAreaPercent >> enemyCount)) {
             std::cerr << "Failed to parse level data line: " << line << std::endl;
             return false;
         }
@@ -87,7 +87,7 @@ void LevelLoader::loadLevel(int index, LevelGrid& grid, std::vector<Enemy>& enem
     smartEnemies.emplace_back(sf::Vector2f(0, 0), grid.getTileSize());
 }
 
-int LevelLoader::getLevelCount() const {
-    return static_cast<int>(levels.size());
+const std::vector<LevelData>&  LevelLoader::getLevelData() const {
+    return levels;
 }
 

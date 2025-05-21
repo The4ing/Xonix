@@ -30,6 +30,7 @@ private:
     int currentLevelNumber;
     int lives;
     float closedAreaPercent;
+    float requiredAreaPercent;
     void updateClosedAreaPercent();
     Player player;
     LevelGrid grid;
