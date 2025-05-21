@@ -12,8 +12,8 @@ Game::Game()
     hud(sf::Vector2f(0, 960), sf::Vector2f(1920, 120), font),
     currentLevelNumber(0),
     requiredAreaPercent(0.0f),
-    lives(3),
     closedAreaPercent(0.0f),
+    lives(1),
     player(0, 29, 32.0f),
     grid(30, 60, 32.0f)
 {
@@ -21,8 +21,11 @@ Game::Game()
     remainingTime = 120.f;  // 2 דקות = 120 שניות
     gameClock.restart();    // אם אתה משתמש גם ב־gameClock
 
-    if (!font.loadFromFile("resources/arial.ttf")) {
+    if (!font.loadFromFile("resources/game.otf")) {
         throw std::runtime_error("Failed to load font.");
+    }
+    if (!lostFont.loadFromFile("resources/PressStart2P.ttf")) {
+        throw std::runtime_error("Failed to load LostFont.ttf");
     }
 }
 
@@ -79,6 +82,9 @@ void Game::loadLevel(int levelNumber) {
 
     for (auto& smart : smartEnemies)
         gameObjects.push_back(&smart);
+
+    remainingTime = 120.f;
+    gameClock.restart();
 }
 
 
@@ -86,14 +92,25 @@ void Game::loadLevel(int levelNumber) {
 
 void Game::showSplashScreen() {
     sf::RenderWindow splash(sf::VideoMode(800, 600), "Welcome");
+    const auto winSize = splash.getSize();
 
-    sf::Text title("XONIX", font, 80);
-    title.setPosition(220, 200);
+    // Title
+    sf::Text title("XONIX", font, 160);
     title.setFillColor(sf::Color::White);
+    {
+        auto bounds = title.getLocalBounds();
+        title.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+        title.setPosition(winSize.x / 2.f, winSize.y / 2.f - 80.f);
+    }
 
-    sf::Text prompt("Press any key to start", font, 30);
-    prompt.setPosition(240, 350);
+    // Prompt
+    sf::Text prompt("Press any key to start", font, 67);
     prompt.setFillColor(sf::Color::White);
+    {
+        auto bounds = prompt.getLocalBounds();
+        prompt.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+        prompt.setPosition(winSize.x / 2.f, winSize.y / 2.f + 40.f);
+    }
 
     while (splash.isOpen()) {
         sf::Event event;
@@ -110,6 +127,7 @@ void Game::showSplashScreen() {
         splash.display();
     }
 }
+
 
 
 void Game::run() {
@@ -146,7 +164,8 @@ void Game::update(sf::Time dt) {
     remainingTime -= dt.asSeconds();
     if (remainingTime < 0.f) {
         remainingTime = 0.f;
-        // אם רוצים: Game Over
+        restart();
+        return;
     }
 
     // 1. קריאת קלט ועדכון השחקן
@@ -200,14 +219,50 @@ void Game::update(sf::Time dt) {
 
 
     // 4. עדכון אויבים רגילים
+  // בדיקה אם שומר רגיל דורך על PlayerPath
     for (auto& enemy : enemies) {
+        sf::Vector2f pos = enemy.getPosition();
+        int row = static_cast<int>(pos.y / grid.getTileSize());
+        int col = static_cast<int>(pos.x / grid.getTileSize());
+
+        if (grid.get(row, col) == TileType::PlayerPath) {
+            loseLife();
+            // הסר את הנתיב של השחקן
+            for (int y = 0; y < grid.getRows(); ++y) {
+                for (int x = 0; x < grid.getCols(); ++x) {
+                    if (grid.get(y, x) == TileType::PlayerPath) {
+                        grid.set(y, x, TileType::Open);
+                    }
+                }
+            }
+
+            // אפס את השחקן
+            player.resetToStart();
+
+            // אפס את השומרים החכמים בלבד
+            for (auto& smart : smartEnemies) {
+                smart.resetToStart();
+            }
+
+            break; // מספיק שומר אחד שנגע
+        }
         enemy.update(dt, grid);
-        // …לוגיקת התנגשויות עם PlayerPath…
     }
 
     // 5. עדכון אויבים חכמים
-    for (auto& smart : smartEnemies)
+    for (auto& smart : smartEnemies) {
         smart.update(dt, grid, player);
+
+        // if smart enemy touches the player, lose a life and reset
+        if (smart.getBounds().intersects(player.getBounds())) {
+            std::cout << "[Game::update] SmartEnemy hit Player\n";
+            loseLife();                    // subtracts life and restarts if needed
+            player.resetToStart();         // send player back to start
+            for (auto& s : smartEnemies)   // reset all smart enemies
+                s.resetToStart();
+            break;                         // only handle once per frame
+        }
+    }
 
     // 6. בדיקת התנגשויות בין כל ה־GameObjects
     for (size_t i = 0; i < gameObjects.size(); ++i) {
@@ -221,7 +276,7 @@ void Game::update(sf::Time dt) {
 
     // 7. עדכון HUD — רק פעם אחת, עם remainingTime ועם closedAreaPercent
     hud.setTime(remainingTime);
-    hud.setScore(score);
+  //  hud.setScore(score);
     hud.setLives(lives);
     hud.setAreaPercent(closedAreaPercent);
 }
@@ -294,5 +349,52 @@ void Game::updateClosedAreaPercent() {
     }
     else {
         closedAreaPercent = 0.f;
+    }
+}
+
+void Game::loseLife() {
+    lives--;
+    hud.setLives(lives);
+    if (lives <= 0) {
+        showGameOverScreen();
+        restart();
+    }
+}
+void Game::restart() {
+    lives = settings.initialLives;
+   // score = 0;
+    hud.setLives(lives);
+    //hud.setScore(score);
+
+    // reset the countdown
+    remainingTime = 120.f;
+    gameClock.restart();
+
+    loadLevel(currentLevelNumber);
+}
+
+
+void Game::showGameOverScreen() {
+    gameOverText.setFont(lostFont);
+    gameOverText.setString("       YOU LOST!\nPress any key to restart");
+    gameOverText.setCharacterSize(72);
+    gameOverText.setFillColor(sf::Color::Red);
+    // center it
+    sf::FloatRect bb = gameOverText.getLocalBounds();
+    gameOverText.setOrigin(bb.width / 2, bb.height / 2);
+    gameOverText.setPosition(window.getSize().x / 2.f,
+        window.getSize().y / 2.f);
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                return window.close();
+            if (event.type == sf::Event::KeyPressed)
+                return;  // any key to continue
+        }
+        window.clear(sf::Color::Black);
+        window.draw(gameOverText);
+        window.display();
     }
 }

@@ -22,7 +22,7 @@ private:
     void processEvents();
     void update(sf::Time dt);
     void render();
-
+    void loseLife();
     std::vector<sf::Vector2f> getEnemyPositions() const;
     sf::RenderWindow window;
     const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
@@ -39,12 +39,14 @@ private:
     std::vector<Enemy> enemies;
     std::vector<SmartEnemy> smartEnemies;
     std::vector<GameObject*> gameObjects;
-
-
+    void showGameOverScreen();
+    void restart();
     sf::Font font;
+    sf::Font lostFont;
+    sf::Text gameOverText;
+
     HUD hud;
     sf::Clock gameClock;
-    int score = 0;
     
     LevelLoader levelLoader;
     std::vector<LevelData> levelDataList;

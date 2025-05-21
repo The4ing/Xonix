@@ -6,92 +6,85 @@ HUD::HUD(sf::Vector2f position, sf::Vector2f size, const sf::Font& font) {
     background.setPosition(position);
     background.setFillColor(sf::Color(50, 50, 50));
 
-    // ?????? ?????? (Score, Lives, Time)
-    scoreText.setFont(font);
-    scoreText.setCharacterSize(22);
-    scoreText.setFillColor(sf::Color::White);
-    scoreText.setPosition(position.x + 20, position.y + 10);
+    // ????? ????? ????? ??centering
+    float hudX = position.x;
+    float hudY = position.y;
+    float hudW = size.x;
+    float hudH = size.y;
 
+    // ??????? ??? ????? ???? ???? ????
+    auto centerText = [&](sf::Text& text, float xFrac, float yFrac) {
+        sf::FloatRect bb = text.getLocalBounds();
+        text.setOrigin(bb.width / 2, bb.height / 2);
+        text.setPosition(hudX + hudW * xFrac,
+            hudY + hudH * yFrac);
+        };
+
+    // Lives Text
     livesText.setFont(font);
-    livesText.setCharacterSize(22);
+    livesText.setCharacterSize(59);
     livesText.setFillColor(sf::Color::White);
-    livesText.setPosition(position.x + 220, position.y + 10);
+    centerText(livesText, 0.25f, 0.2f);
 
+    // Time Text
     timeText.setFont(font);
-    timeText.setCharacterSize(22);
+    timeText.setCharacterSize(59);
     timeText.setFillColor(sf::Color::White);
-    timeText.setPosition(position.x + 420, position.y + 10);
+    centerText(timeText, 0.5f, 0.2f);
 
-    // ???? ???? ???? (??? ???? ??? ???????)
+    // Area % Text
     areaText.setFont(font);
-    areaText.setCharacterSize(18);
+    areaText.setCharacterSize(57);
     areaText.setFillColor(sf::Color::White);
-    areaText.setPosition(position.x + 620, position.y + 8);
+    centerText(areaText, 0.75f, 0.1f);
 
-    // ????? ?? ???????
-    sf::Vector2f barSize(150.0f, 16.0f);
+    // ?? ??????? ???? ?????
+    sf::Vector2f barSize(150.0f, 20.0f);
     areaBarBg.setSize(barSize);
-    areaBarBg.setPosition(position.x + 620, position.y + 36);
     areaBarBg.setFillColor(sf::Color(100, 100, 100));
     areaBarBg.setOutlineColor(sf::Color::White);
     areaBarBg.setOutlineThickness(1.0f);
+    // place under areaText
+    sf::Vector2f areaPos = areaText.getPosition();
+    float barX = areaPos.x - barSize.x / 2 + 20;
+    float barY = areaPos.y + 70.0f; // small padding below text
+    areaBarBg.setPosition(barX, barY);
 
     areaBarFill.setSize({ 0.0f, barSize.y });
-    areaBarFill.setPosition(areaBarBg.getPosition());
-    areaBarFill.setFillColor(sf::Color(100, 250, 50));  // ???? ????? ????
-}
-
-void HUD::setScore(int score) {
-    scoreText.setString("Score: " + std::to_string(score));
+    areaBarFill.setPosition(barX, barY);
+    areaBarFill.setFillColor(sf::Color(100, 250, 50));
 }
 
 void HUD::setLives(int lives) {
     livesText.setString("Lives: " + std::to_string(lives));
 }
 
-// HUD.cpp
 void HUD::setTime(float seconds) {
     int sec = static_cast<int>(seconds);
     int minutes = sec / 60;
     int secs = sec % 60;
-
     std::stringstream ss;
-    ss << "Time: " << minutes << ":"
-        << (secs < 10 ? "0" : "") << secs;
+    ss << minutes << ":" << (secs < 10 ? "0" : "") << secs;
     timeText.setString(ss.str());
 }
 
-
 void HUD::setAreaPercent(float percent) {
-    // 1) ????? ????
-    std::stringstream ss;
-    ss << static_cast<int>(percent) << "% Closed";
-    areaText.setString(ss.str());
-
-    // 2) ????? ???? ?-fill ?? ???
+    areaText.setString(std::to_string(static_cast<int>(percent)) + "%");
+    // adjust bar fill width
     float widthBg = areaBarBg.getSize().x;
-    areaBarFill.setSize({ widthBg * (percent / 100.0f),
-                          areaBarBg.getSize().y });
-
-    // 3) (?????????) ????? ???? ????? ?????
-    if (percent < 50.f) {
-        areaBarFill.setFillColor(sf::Color(250, 100, 100)); // ???? ?? 50%
-    }
-    else {
-        areaBarFill.setFillColor(sf::Color(100, 250, 100)); // ???? ??? 50%
-    }
+    areaBarFill.setSize({ widthBg * (percent / 100.0f), areaBarBg.getSize().y });
+    // color feedback
+    if (percent < 50.f)
+        areaBarFill.setFillColor(sf::Color(250, 100, 100));
+    else
+        areaBarFill.setFillColor(sf::Color(100, 250, 100));
 }
 
 void HUD::draw(sf::RenderWindow& window) {
     window.draw(background);
-
-    // ??????
-    window.draw(scoreText);
     window.draw(livesText);
     window.draw(timeText);
-    window.draw(areaText);
-
-    // ?? ???????
     window.draw(areaBarBg);
     window.draw(areaBarFill);
+    window.draw(areaText);
 }

@@ -151,3 +151,4 @@ sf::Vector2i Player::getDirection() const {
 float Player::getSpeed() const {
     return moveSpeed;
 }
+
