@@ -8,6 +8,7 @@ public:
     void setScore(int score);
     void setLives(int lives);
     void setTime(float seconds);
+    void setAreaPercent(float percent);
 
     void draw(sf::RenderWindow& window);
 
@@ -16,4 +17,5 @@ private:
     sf::Text scoreText;
     sf::Text livesText;
     sf::Text timeText;
+    sf::Text areaText;
 };

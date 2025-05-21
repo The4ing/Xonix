@@ -37,15 +37,20 @@ void LevelGrid::draw(sf::RenderWindow& window) {
                 tileShape.setFillColor(sf::Color(100, 100, 100));
                 break;
             case TileType::Filled:
-                tileShape.setFillColor(sf::Color(100, 100, 100));
+                 tileShape.setFillColor(sf::Color(100, 100, 100));
                 break;
             case TileType::Open:
                 tileShape.setFillColor(sf::Color::Black);
                 break;
+            case TileType::Empty:
+                tileShape.setFillColor(sf::Color::Blue); // או צבע אחר לפי העיצוב
+                break;
+
             case TileType::PlayerPath:
                 tileShape.setFillColor(sf::Color(100,100,100));
                 break;
             }
+
             tileShape.setPosition(x * tileSize, y * tileSize);
             window.draw(tileShape);
         }
@@ -136,3 +141,21 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
 
     std::cout << "Converted PlayerPath to Filled: " << pathConverted << " tiles\n";
 }
+
+float LevelGrid::calculateClosedAreaPercent() const {
+    int closedCount = 0;
+    int totalCount = rows * cols;
+
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            if (grid[r][c] == TileType::PlayerPath) {
+                closedCount++;
+            }
+        }
+    }
+    if (totalCount == 0)
+        return 0.0f;
+
+    return (static_cast<float>(closedCount) / totalCount) * 100.0f;
+}
+

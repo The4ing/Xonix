@@ -1,3 +1,4 @@
+#include "Hud.h"
 #include "HUD.h"
 #include <sstream>
 
@@ -20,6 +21,11 @@ HUD::HUD(sf::Vector2f position, sf::Vector2f size, const sf::Font& font) {
     timeText.setCharacterSize(22);
     timeText.setFillColor(sf::Color::White);
     timeText.setPosition(position.x + 420, position.y + 10);
+
+    areaText.setFont(font);
+    areaText.setCharacterSize(22);
+    areaText.setFillColor(sf::Color::White);
+    areaText.setPosition(position.x + 620, position.y + 10);
 }
 
 void HUD::setScore(int score) {
@@ -36,9 +42,17 @@ void HUD::setTime(float seconds) {
     timeText.setString(ss.str());
 }
 
+void HUD::setAreaPercent(float percent) {
+    std::stringstream ss;
+    ss << "Area: " << static_cast<int>(percent) << "%";
+    areaText.setString(ss.str());
+}
+
+
 void HUD::draw(sf::RenderWindow& window) {
     window.draw(background);
     window.draw(scoreText);
     window.draw(livesText);
     window.draw(timeText);
+    window.draw(areaText);
 }

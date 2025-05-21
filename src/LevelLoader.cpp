@@ -61,10 +61,10 @@ void LevelLoader::loadLevel(int index, LevelGrid& grid, std::vector<Enemy>& enem
     enemies.clear();
     smartEnemies.clear();
 
-    // אפס את הגריד
+    // אפס את הגריד ל-Open במקום Empty
     for (int row = 0; row < grid.getRows(); ++row) {
         for (int col = 0; col < grid.getCols(); ++col) {
-            grid.set(row, col, TileType::Empty);
+            grid.set(row, col, TileType::Open);
         }
     }
 

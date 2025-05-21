@@ -19,7 +19,7 @@ public:
     float getTileSize() const { return tileSize; }
 
     void fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions);
-
+    float calculateClosedAreaPercent() const;
 
 private:
 

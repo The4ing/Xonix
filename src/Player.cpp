@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#include "Player.h"
+#include <iostream>
 #include "Player.h"
 #include "Enemy.h"
 
@@ -50,8 +51,12 @@ void Player::update(sf::Time dt) {
     }
 
     TileType currentTile = getCurrentTile();
+    
+    
+
 
     if (currentTile == TileType::Open) {
+       
         if (!isDrawingPath) {
             isDrawingPath = true;
         }
@@ -65,7 +70,7 @@ void Player::update(sf::Time dt) {
         }
 
         sf::RectangleShape dot(sf::Vector2f(tileSize, tileSize));
-        dot.setFillColor(sf::Color(100, 100, 100));
+        dot.setFillColor(sf::Color(255, 105, 180));  
         dot.setPosition(actualPos);
         trailRects.push_back(dot);
     }
@@ -109,6 +114,8 @@ void Player::collideWithSmartEnemy(SmartEnemy& smartEnemy) {
     // Handle collision logic
 }
 
+
+
 TileType Player::getCurrentTile() const {
     if (!gridRef) return TileType::Open;
     int row = static_cast<int>((actualPos.y + tileSize / 2) / tileSize);
@@ -118,6 +125,7 @@ TileType Player::getCurrentTile() const {
 
 std::string Player::tileTypeToString(TileType type) {
     switch (type) {
+    case TileType::Empty:       return "Empty";
     case TileType::Wall:        return "Wall";
     case TileType::Filled:      return "Filled";
     case TileType::Open:        return "Open";
@@ -125,6 +133,7 @@ std::string Player::tileTypeToString(TileType type) {
     default:                    return "Unknown";
     }
 }
+
 
 sf::Vector2f Player::getPosition() const {
     return actualPos;

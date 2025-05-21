@@ -27,6 +27,7 @@ public:
 
     bool getIsDrawingPath() const { return isDrawingPath; }
     void setIsDrawingPath(bool val) { isDrawingPath = val; }
+   
 
 private:
     TileType getCurrentTile() const;

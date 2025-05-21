@@ -1,8 +1,9 @@
-#include "Wall.h"
+﻿#include "Wall.h"
 #include "Player.h"
 
 Wall::Wall(const sf::Vector2f& position, float tileSize) {
-    shape.setFillColor(sf::Color(100, 100, 100)); // gray
+    shape.setSize({ tileSize, tileSize }); 
+    shape.setFillColor(sf::Color::Blue);  // צבע ברור
     shape.setPosition(position);
 }
 

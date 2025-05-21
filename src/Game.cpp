@@ -5,7 +5,7 @@
 #include <iostream>
 
 
-// בנאי
+
 Game::Game()
     : levelLoader("C:/Users/User/source/repos/The4ing/Xonix/resources/levels.txt"),  
     font(),
@@ -34,35 +34,27 @@ void Game::loadLevel(int levelNumber) {
     currentLevelNumber = levelNumber;
 
    
-    // נקה את האובייקטים הקודמים
     enemies.clear();
     smartEnemies.clear();
     walls.clear();
     gameObjects.clear();
 
 
-    settings = levelLoader.getSettings(); // קודם נטען את ההגדרות
+    settings = levelLoader.getSettings(); 
     window.create(sf::VideoMode(settings.windowSize.x, settings.windowSize.y), "Xonix Game");
     lives = settings.initialLives;
 
-    // רק אחרי זה נטען את גריד, אויבים וכו'
     levelLoader.loadLevel(currentLevelNumber, grid, enemies, smartEnemies);
 
 
-    // עדכן את השחקן בהתאם לגודל החלון והגריד
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
 
     std::cout << "Window size: " << settings.windowSize.x << "x" << settings.windowSize.y << std::endl;
 
-   
-
-  
-
-    // הוסף את השחקן לרשימת האובייקטים
     gameObjects.push_back(&player);
 
-    // עבור על כל התאים בגריד והוסף קירות לפי הצורך
+  
     for (int row = 0; row < grid.getRows(); ++row) {
         for (int col = 0; col < grid.getCols(); ++col) {
             if (grid.get(row, col) == TileType::Wall) {
@@ -72,7 +64,7 @@ void Game::loadLevel(int levelNumber) {
         }
     }
 
-    // הוסף קירות, אויבים רגילים וחכמים לרשימת האובייקטים
+   
     for (auto& wall : walls)
         gameObjects.push_back(&wall);
 
@@ -176,16 +168,19 @@ void Game::update(sf::Time dt) {
             }
         }
     }
+    closedAreaPercent = grid.calculateClosedAreaPercent(); 
+    hud.setAreaPercent(closedAreaPercent);
+
     
     if (closedAreaPercent >= 75.0f) {
         if (currentLevelNumber + 1 < levelLoader.getLevelCount()) {
             loadLevel(currentLevelNumber + 1);
         }
         else {
-           //need to add window for wininng
-            window.close(); 
+            window.close();
         }
     }
+
 
 }
 
@@ -211,7 +206,6 @@ void Game::render() {
     for (auto& smartEnemy : smartEnemies) {
         smartEnemy.draw(window);
     }
-   
 
     // 5. Draw player
     player.draw(window);
