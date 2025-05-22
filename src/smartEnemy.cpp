@@ -13,7 +13,6 @@ namespace std {
     };
 }
 
-
 SmartEnemy::SmartEnemy(const sf::Vector2f& startPos, float tileSize)
     : tileSize(tileSize)
 {
@@ -47,13 +46,13 @@ void SmartEnemy::moveAlongPath(sf::Time dt) {
     sf::Vector2f direction = targetPos - currentPos;
     float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
-    if (dist < moveSpeed * dt.asSeconds()) {
+    if (dist < SMART_ENEMY_SPEED * dt.asSeconds()) {
         shape.setPosition(targetPos);
         path.pop();
     }
     else {
         direction /= dist; // normalize
-        shape.move(direction * moveSpeed * dt.asSeconds());
+        shape.move(direction * SMART_ENEMY_SPEED * dt.asSeconds());
     }
 }
 
@@ -132,15 +131,6 @@ void SmartEnemy::draw(sf::RenderWindow& window) const {
 
 sf::FloatRect SmartEnemy::getBounds() const {
     return shape.getGlobalBounds();
-}
-
-void SmartEnemy::collideWith(GameObject& other) {
-    other.collideWithSmartEnemy(*this);  
-}
-
-
-void SmartEnemy::collideWithPlayer(Player& player) {
-  //  std::cout << "Smart enemy hit player!\n";
 }
 
 sf::Vector2f SmartEnemy::getPosition() const {

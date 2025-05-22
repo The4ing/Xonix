@@ -13,44 +13,45 @@
 class Game {
 public:
     Game();
-    void loadFirstLevel();
     void showSplashScreen();
     void run();
     
 
 private:
+    void loadFirstLevel();
+    void loadLevel(int index);
     void processEvents();
     void update(sf::Time dt);
     void render();
     void loseLife();
-    std::vector<sf::Vector2f> getEnemyPositions() const;
-    sf::RenderWindow window;
-    const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
-
-    int currentLevelNumber;
-    int lives;
-    float closedAreaPercent;
-    float requiredAreaPercent;
+    void showGameOverScreen();
+    void restart();
     void updateClosedAreaPercent();
+    std::vector<sf::Vector2f> getEnemyPositions() const;
+
     Player player;
     LevelGrid grid;
-    float remainingTime;    // ב־שניות
-    std::vector<Wall> walls;               // holds actual wall objects
+    std::vector<Wall> walls;             
     std::vector<Enemy> enemies;
     std::vector<SmartEnemy> smartEnemies;
     std::vector<GameObject*> gameObjects;
-    void showGameOverScreen();
-    void restart();
+
+
     sf::Font font;
     sf::Font lostFont;
     sf::Text gameOverText;
-
-    HUD hud;
     sf::Clock gameClock;
+    HUD hud;
     
     LevelLoader levelLoader;
     std::vector<LevelData> levelDataList;
     GameSettings settings;
+    sf::RenderWindow window;
+    const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
+    int currentLevelNumber;
+    int lives;
+    float closedAreaPercent;
+    float requiredAreaPercent;
+    float remainingTime;
 
-    void loadLevel(int index);  // הכרזה לפונקציה שאתה מגדיר בקובץ cpp
 };

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "utilities.h"
 
 LevelLoader::LevelLoader(const std::string& filename) : filename(filename) {}
 
@@ -17,8 +18,6 @@ bool LevelLoader::load() {
         std::cerr << "Cannot read first line (settings)" << std::endl;
         return false;
     }
-
-  //  std::cout << "Settings line: " << line << std::endl;
 
     std::istringstream settingsStream(line);
     unsigned int w, h;
@@ -46,8 +45,6 @@ bool LevelLoader::load() {
         }
         levels.push_back(level);
     }
-
-    std::cout << "Levels loaded: " << levels.size() << std::endl;
     return true;
 }
 
@@ -80,7 +77,7 @@ void LevelLoader::loadLevel(int index, LevelGrid& grid, std::vector<Enemy>& enem
 
     // טען אויבים רגילים
     for (const auto& pos : levels[index].enemyPositions) {
-        enemies.emplace_back(pos, 100.f, grid.getTileSize());
+        enemies.emplace_back(pos, ENEMY_SPEED, grid.getTileSize());
     }
 
     // אויב חכם אחד

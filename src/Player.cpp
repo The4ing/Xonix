@@ -1,9 +1,5 @@
 ﻿#include "Player.h"
-#include <iostream>
-#include "Player.h"
-#include "Enemy.h"
-
-using namespace std;
+#include "smartEnemy.h"
 
 Player::Player(int startX, int startY, float tileSize)
     : tileSize(tileSize),
@@ -13,7 +9,7 @@ Player::Player(int startX, int startY, float tileSize)
     isDrawingPath(false)
 {
     shape.setSize(sf::Vector2f(tileSize, tileSize));
-    shape.setFillColor(sf::Color::Green);
+    shape.setFillColor(sf::Color::White);
     shape.setPosition(actualPos);
     startPos = actualPos;
 }
@@ -55,7 +51,6 @@ void Player::update(sf::Time dt) {
 
     if (currentTile == TileType::Open) {
         if (!isDrawingPath) {
-            std::cout << "[Player::update] setting to true" << std::endl;
             isDrawingPath = true;
         }
 
@@ -67,50 +62,19 @@ void Player::update(sf::Time dt) {
         }
 
     }
-    //else if (currentTile == TileType::Wall && isDrawingPath) {
-    //    std::cout << "[Player::update] setting to false" << std::endl;
-    //    isDrawingPath = false;
-    //    trailRects.clear();  // נקה את הנקודות הגרפיות (לא את הרשת)
-    //}
 
     actualPos = nextPos;
     shape.setPosition(actualPos);
 
 }
 
-
 void Player::draw(sf::RenderWindow& window) const {
-    for (const auto& dot : trailRects)
-        window.draw(dot);
-
     window.draw(shape);
-}
-
-void Player::stop() {
-    gridDirection = { 0, 0 };
 }
 
 sf::FloatRect Player::getBounds() const {
     return shape.getGlobalBounds();
 }
-
-void Player::collideWith(GameObject& other) {
-    other.collideWithPlayer(*this);
-}
-
-void Player::collideWithEnemy(Enemy& enemy) {
-   // std::cout << "Player collided with Enemy!" << std::endl;
-}
-
-void Player::collideWithWall(Wall& wall) {
-    // Optional: stop();
-}
-
-void Player::collideWithSmartEnemy(SmartEnemy& smartEnemy) {
-    // Handle collision logic
-}
-
-
 
 TileType Player::getCurrentTile() const {
     if (!gridRef) return TileType::Open;
@@ -119,36 +83,17 @@ TileType Player::getCurrentTile() const {
     return gridRef->get(row, col);
 }
 
-std::string Player::tileTypeToString(TileType type) {
-    switch (type) {
-    case TileType::Empty:       return "Empty";
-    case TileType::Wall:        return "Wall";
-    case TileType::Filled:      return "Filled";
-    case TileType::Open:        return "Open";
-    case TileType::PlayerPath:  return "PlayerPath";
-    default:                    return "Unknown";
-    }
-}
-
-
 sf::Vector2f Player::getPosition() const {
     return actualPos;
 }
 
 void Player::resetToStart() {
-    std::cout << "[Player::resetToStart] isDrawingPath was " << std::boolalpha << isDrawingPath << " -> false" << std::endl;
     actualPos = startPos;
     shape.setPosition(actualPos);
     gridDirection = { 0, 0 };
     isDrawingPath = false;
-    trailRects.clear();
 }
 
 sf::Vector2i Player::getDirection() const {
     return gridDirection;
 }
-
-float Player::getSpeed() const {
-    return moveSpeed;
-}
-

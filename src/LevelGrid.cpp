@@ -34,16 +34,16 @@ void LevelGrid::draw(sf::RenderWindow& window) {
         for (int x = 0; x < cols; ++x) {
             switch (grid[y][x]) {
             case TileType::Wall:
-                tileShape.setFillColor(sf::Color(100, 100, 100)); // gray
+                tileShape.setFillColor(sf::Color(100, 100, 100)); // BLUE
                 break;
             case TileType::Filled:
-                tileShape.setFillColor(sf::Color::Cyan); // green
+                tileShape.setFillColor(sf::Color::Blue); // Cyan
                 break;
             case TileType::Open:
                 tileShape.setFillColor(sf::Color::Black); // black
                 break;
             case TileType::PlayerPath:
-                tileShape.setFillColor(sf::Color::Magenta); // 🟣 MAGENTA (vivid trail)
+                tileShape.setFillColor(sf::Color::Magenta); // MAGENTA 
                 break;
             }
             tileShape.setPosition(x * tileSize, y * tileSize);
@@ -66,7 +66,6 @@ void LevelGrid::set(int row, int col, TileType type) {
 }
 
 void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions) {
-    std::cout << "Enclosing area\n";
     std::vector<std::unordered_set<sf::Vector2i>> enclosedAreas;
     std::unordered_set<sf::Vector2i> visited;
 
@@ -79,7 +78,6 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
         int ex = static_cast<int>(e.x / tileSize);
         int ey = static_cast<int>(e.y / tileSize);
         enemyTiles.insert({ ex, ey });
-     //   std::cout << "Enemy at: (" << ex << ", " << ey << ")\n";
     }
 
     for (int y = 0; y < rows; ++y) {
@@ -115,7 +113,6 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
             }
 
             if (!touchesBorder) {
-              // std::cout << "Found enclosed area of size " << area.size() << std::endl;
                 enclosedAreas.push_back(area);
             }
         }
@@ -127,7 +124,6 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
         for (const auto& tile : area) {
             if (enemyTiles.count(tile)) {
                 hasEnemy = true;
-               // std::cout << "Area skipped due to enemy at: (" << tile.x << ", " << tile.y << ")\n";
                 break;
             }
         }
@@ -140,8 +136,6 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
         }
     }
 
-   // std::cout << "Filled " << filledTiles << " tiles.\n";
-
     int trailConverted = 0;
     for (int y = 0; y < rows; ++y)
         for (int x = 0; x < cols; ++x)
@@ -149,8 +143,6 @@ void LevelGrid::fillEnclosedArea(const std::vector<sf::Vector2f>& enemyPositions
                 set(y, x, TileType::Filled);
                 trailConverted++;
             }
-
-   // std::cout << "Converted PlayerPath to Filled: " << trailConverted << " tiles\n";
 }
 
 
@@ -171,3 +163,7 @@ float LevelGrid::calculateClosedAreaPercent() const {
     return (static_cast<float>(closedCount) / totalCount) * 100.0f;
 }
 
+bool LevelGrid::isCollidable(int row, int col) const {
+    TileType t = get(row, col);
+    return t == TileType::Wall || t == TileType::Filled;
+}

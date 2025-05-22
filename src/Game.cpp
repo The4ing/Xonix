@@ -3,7 +3,7 @@
 #include "Wall.h"
 #include <stdexcept>
 #include <iostream>
-
+#include "utilities.h"
 
 
 Game::Game()
@@ -17,9 +17,8 @@ Game::Game()
     player(0, 29, 32.0f),
     grid(30, 60, 32.0f)
 {
-    // Game.cpp, לאחר קריאת loadLevel(...)
-    remainingTime = 120.f;  // 2 דקות = 120 שניות
-    gameClock.restart();    // אם אתה משתמש גם ב־gameClock
+    remainingTime = 120.f;  
+    gameClock.restart(); 
 
     if (!font.loadFromFile("resources/game.otf")) {
         throw std::runtime_error("Failed to load font.");
@@ -29,11 +28,9 @@ Game::Game()
     }
 }
 
-
 void Game::loadFirstLevel() {
-    loadLevel(0);  
+    loadLevel(FIRST_LEVEL);
 }
-
 
 void Game::loadLevel(int levelNumber) {
     levelLoader.load();
@@ -59,8 +56,6 @@ void Game::loadLevel(int levelNumber) {
     player.setWindowSize(sf::Vector2f(window.getSize()));
     player.setGrid(&grid);
 
-   // std::cout << "Window size: " << settings.windowSize.x << "x" << settings.windowSize.y << std::endl;
-
     gameObjects.push_back(&player);
 
   
@@ -85,10 +80,10 @@ void Game::loadLevel(int levelNumber) {
 
     remainingTime = 120.f;
     gameClock.restart();
+    closedAreaPercent = 0.f;
+    hud.setAreaPercent(0.f);
+
 }
-
-
-
 
 void Game::showSplashScreen() {
     sf::RenderWindow splash(sf::VideoMode(800, 600), "Welcome");
@@ -128,8 +123,6 @@ void Game::showSplashScreen() {
     }
 }
 
-
-
 void Game::run() {
     showSplashScreen();   
     loadFirstLevel();     
@@ -160,7 +153,7 @@ void Game::processEvents() {
 }
 
 void Game::update(sf::Time dt) {
-    // 0. עדכון הזמן הנותר
+    // עדכון הזמן הנותר
     remainingTime -= dt.asSeconds();
     if (remainingTime < 0.f) {
         remainingTime = 0.f;
@@ -168,12 +161,11 @@ void Game::update(sf::Time dt) {
         return;
     }
 
-    // 1. קריאת קלט ועדכון השחקן
+    // קריאת קלט ועדכון השחקן
     player.handleInput();
     sf::Vector2i dir = player.getDirection();
     player.update(dt);
 
-    // 2. חשב חצי־תא והבטח גבולות
     sf::Vector2f pPos = player.getPosition();
     float tileSize = grid.getTileSize();
     int row = static_cast<int>(pPos.y / tileSize);
@@ -193,13 +185,11 @@ void Game::update(sf::Time dt) {
 
     TileType nextTile = grid.get(nextRow, nextCol);
 
-    // 3. בדיקה על חצי־התא הבא
     if ((nextTile == TileType::Wall || nextTile == TileType::Filled)
         && player.getIsDrawingPath()) {
         player.setIsDrawingPath(false);
         grid.fillEnclosedArea(getEnemyPositions());
 
-        // עדכון אחוז סגור מיד אחרי fill
         updateClosedAreaPercent();
 
         // בדיקת מעבר שלב
@@ -209,7 +199,7 @@ void Game::update(sf::Time dt) {
 
             if (currentLevelNumber >= levelDataList.size()) {
                 std::cout << "All levels completed. You win!" << std::endl;
-                window.close();  // או לעבור למסך ניצחון
+                window.close(); 
             }
             else {
                 loadLevel(currentLevelNumber);
@@ -217,9 +207,7 @@ void Game::update(sf::Time dt) {
         }
     }
 
-
-    // 4. עדכון אויבים רגילים
-  // בדיקה אם שומר רגיל דורך על PlayerPath
+    // עדכון אויבים רגילים
     for (auto& enemy : enemies) {
         sf::Vector2f pos = enemy.getPosition();
         int row = static_cast<int>(pos.y / grid.getTileSize());
@@ -235,7 +223,6 @@ void Game::update(sf::Time dt) {
                     }
                 }
             }
-
             // אפס את השחקן
             player.resetToStart();
 
@@ -249,73 +236,44 @@ void Game::update(sf::Time dt) {
         enemy.update(dt, grid);
     }
 
-    // 5. עדכון אויבים חכמים
+    // עדכון אויבים חכמים
     for (auto& smart : smartEnemies) {
         smart.update(dt, grid, player);
 
-        // if smart enemy touches the player, lose a life and reset
         if (smart.getBounds().intersects(player.getBounds())) {
-            std::cout << "[Game::update] SmartEnemy hit Player\n";
-            loseLife();                    // subtracts life and restarts if needed
-            player.resetToStart();         // send player back to start
-            for (auto& s : smartEnemies)   // reset all smart enemies
+            loseLife();                    
+            player.resetToStart();        
+            for (auto& s : smartEnemies)  
                 s.resetToStart();
-            break;                         // only handle once per frame
+            break;                        
         }
     }
 
-    // 6. בדיקת התנגשויות בין כל ה־GameObjects
-    for (size_t i = 0; i < gameObjects.size(); ++i) {
-        for (size_t j = i + 1; j < gameObjects.size(); ++j) {
-            if (gameObjects[i]->getBounds().intersects(gameObjects[j]->getBounds())) {
-                gameObjects[i]->collideWith(*gameObjects[j]);
-                gameObjects[j]->collideWith(*gameObjects[i]);
-            }
-        }
-    }
-
-    // 7. עדכון HUD — רק פעם אחת, עם remainingTime ועם closedAreaPercent
     hud.setTime(remainingTime);
-  //  hud.setScore(score);
     hud.setLives(lives);
-    hud.setAreaPercent(closedAreaPercent);
+    hud.setAreaProgress(closedAreaPercent, requiredAreaPercent);
 }
-
-
-
 
 void Game::render() {
     window.clear();
-
-    // 1. Draw grid
     grid.draw(window);
 
-    // 2. Draw walls
     for (const auto& wall : walls) {
         wall.draw(window);
     }
        
-
-    // 3. Draw enemies
     for (const auto& enemy : enemies) {
         enemy.draw(window);
     }
-        
 
-    // 4. Draw smart enemies
     for (auto& smartEnemy : smartEnemies) {
         smartEnemy.draw(window);
     }
 
-    // 5. Draw player
     player.draw(window);
-
-    // 6. Draw HUD
     hud.draw(window);
-
     window.display();
 }
-
 
 std::vector<sf::Vector2f> Game::getEnemyPositions() const {
     std::vector<sf::Vector2f> positions;
@@ -342,7 +300,6 @@ void Game::updateClosedAreaPercent() {
         }
     }
 
-    // סכימת שני הסוגים היא בסך-הכל תאי ה-Open המקוריים
     int totalOriginalOpen = openCount + filledCount;
     if (totalOriginalOpen > 0) {
         closedAreaPercent = 100.f * filledCount / totalOriginalOpen;
@@ -362,17 +319,19 @@ void Game::loseLife() {
 }
 void Game::restart() {
     lives = settings.initialLives;
-   // score = 0;
     hud.setLives(lives);
-    //hud.setScore(score);
 
     // reset the countdown
     remainingTime = 120.f;
     gameClock.restart();
+    closedAreaPercent = 0.f;
+    hud.setAreaPercent(0.f);
 
-    loadLevel(currentLevelNumber);
+    hud.draw(window);
+
+    window.display();
+    loadFirstLevel();
 }
-
 
 void Game::showGameOverScreen() {
     gameOverText.setFont(lostFont);
